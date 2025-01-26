@@ -2,9 +2,9 @@
 
 clear;
 path(pathdef);
-addpath("utils\");
-addpath("examples\dot2d\");
-addpath("socp\dot2d\");
+addpath("utils/");
+addpath("examples/dot2d/");
+addpath("socp/dot2d/");
 
 % KKT error tolerance
 tol = 1e-4;
@@ -35,7 +35,7 @@ delta = 0;
 [rho0, rho1] = get_example(Problem, nx, ny, delta);
 
 %% Set transport problem (Type 2: based on any two images)
-% [rho0, rho1] = get_example_from_images("examples\dot2d\centaur.bmp", "examples\dot2d\man.bmp", nx, ny, 'ReverseColor');
+% [rho0, rho1] = get_example_from_images("examples/dot2d/centaur.bmp", "examples/dot2d/man.bmp", nx, ny, 'ReverseColor');
 
 %% Set algorithm
 % <algo>:

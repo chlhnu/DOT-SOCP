@@ -293,7 +293,7 @@ runHist.method = methodName;
 runHist.kktNames = kktLegendNames;
 
 % Running time
-timeML{levelN + 1} = record_time(multilevelTime, {'ML Time'});
+timeML{levelN + 1} = record_time(multilevelTime, {'ML_Time'});
 
 end
 

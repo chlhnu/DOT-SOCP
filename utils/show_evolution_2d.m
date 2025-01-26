@@ -18,7 +18,7 @@ end
 timeDisplay = 3;
 
 % Colormap
-colors = turbo;
+colors = custom_turbo();
 % cutting_pos = 64;
 % colors = colors(cutting_pos + 1 : end, :);
 % colors = cat(1, generate_colormap([1, 1, 1], colors(1, :), cutting_pos), colors);
@@ -42,7 +42,7 @@ if ~ isempty(barrier)
             error("Type of mesh is invalid if there is barrier");
         end
 
-        colors = turbo;
+        colors = custom_turbo();
     else
         error("Argument at posistion 5 is invalid");
     end

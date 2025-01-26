@@ -2,9 +2,9 @@
 
 clear;
 path(pathdef);
-addpath("utils\");
-addpath("examples\dot1d\");
-addpath("socp\dot1d\");
+addpath("utils/");
+addpath("examples/dot1d/");
+addpath("socp/dot1d/");
 
 % KKT error tolerance
 tol = 1e-5;

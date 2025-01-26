@@ -525,7 +525,7 @@ var_out.beta = sigma * beta;
 
 % Time
 times = [time_lineq, time_proj, time_multiplier, time_q, time_interp, time_kkt, time_total, it];
-names = {'Step1-1 sGS', 'Step1-2 ProjSOC', 'Step2 multiplier' , 'Step3 q', 'Step4 Interp', 'KKT', 'Total time', 'Iters'};
+names = {'Step_1_1_sGS', 'Step_1_2_ProjSOC', 'Step_2_Multiplier' , 'Step_3_Q_Step', 'Step_4_Interp', 'KKT', 'Total_Time', 'Iters'};
 var_out.time = record_time(times, names);
 
 % Running history

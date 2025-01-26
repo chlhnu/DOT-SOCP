@@ -2,9 +2,9 @@
 
 clear;
 path(pathdef);
-addpath("utils\");
-addpath("examples\wdot2d\");
-addpath("socp\wdot2d\");
+addpath("utils/");
+addpath("examples/wdot2d/");
+addpath("socp/wdot2d/");
 
 % KKT error tolerance
 tol = 1e-5;

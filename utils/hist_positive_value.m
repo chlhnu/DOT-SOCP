@@ -19,7 +19,7 @@ end
 
 if (export_yes)
     fig  = figure("Name", title, "Visible", "off");
-    path = "results\";
+    path = "results/";
 else
     fig = figure("Name", title);
 end
@@ -39,7 +39,7 @@ alpha_area = 0.75;
 % Y Left
 yyaxis left
 set(gca, "YColor", color_hist);
-histogram(log_nega_rho, levels, 'FaceColor', color_hist, Normalization = "percentage");
+histogram(log_nega_rho, levels, 'FaceColor', color_hist, "Normalization", "probability");
 ytickformat("percentage");
 ylabel("Percentage")
 
@@ -50,7 +50,7 @@ end
 % Y Right
 yyaxis right
 set(gca, "YColor", color_area);
-proportion = histcounts(log_nega_rho, levels, Normalization="percentage");
+proportion = histcounts(log_nega_rho, levels, "Normalization", "probability");
 proportion_cum = cumsum(proportion, 'reverse');
 levels = movmean(levels, 2, "Endpoints", "discard");
 area(levels, proportion_cum, 'FaceColor', color_area, 'FaceAlpha', alpha_area, 'LineStyle', 'none');

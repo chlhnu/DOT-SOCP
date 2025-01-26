@@ -40,7 +40,7 @@ elseif strcmp(showFunc, "join")
     num_curves = min(Nt, 10);
     tt = round(linspace(1, Nt, num_curves));
 
-    color_list = turbo(num_curves);
+    color_list = custom_turbo(num_curves);
     
     for ind = 1 : num_curves
         plot(xx, rho(:, tt(ind)), 'Color', color_list(ind, :), 'LineWidth', 1.5);

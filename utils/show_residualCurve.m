@@ -36,9 +36,9 @@ else
     semilogy(resiLists, 'LineWidth', 1.5);
 end
 
+axis("tight");
 ylim([lBound Inf]);
 ylabel(yLabel);
-xlim("tight");
 
 if num_lgd_items >= 4
     lgd = legend(legendNames);
