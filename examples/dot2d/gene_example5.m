@@ -10,8 +10,8 @@ rho0 = double(255 - rho0) / 255;
 rho1 = double(255 - rho1) / 255;
 
 % padding zero
-rho0 = padarray(rho0, [1, 1], 0, 'post');
-rho1 = padarray(rho1, [1, 1], 0, 'post');
+rho0 = custom_padarray(rho0, [1, 1], 0, 'post');
+rho1 = custom_padarray(rho1, [1, 1], 0, 'post');
 
 end
 
