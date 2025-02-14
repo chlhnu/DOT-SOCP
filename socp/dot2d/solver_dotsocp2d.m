@@ -241,9 +241,11 @@ for level = 1 : levelN
 
     % Next level
     if level < levelN
+        optsML.time_limit = optsML.time_limit - var.time{1,end-1};
+        optsML.sigma = 10^(log10(optsML.sigma * sigma) / 2);
+        
         [var, model] = jump_nextLevel(var, model, rho0s{level+1}, rho1s{level+1}, nts{level+1});
         lastLevelKKT = runHist.kkt(end, :);
-        optsML.sigma = 10^(log10(optsML.sigma * sigma) / 2);
     end
 end
 
