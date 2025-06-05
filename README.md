@@ -6,7 +6,7 @@ This software is designed to solve the dynamic optimal transport (DOT) problem o
 
 ### Citation
 
-* **Liang Chen, Youyicun Lin, and YuXuan Zhou**, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization. Manuscript, 2025.
+* **Liang Chen, Youyicun Lin, and YuXuan Zhou**, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, arXiv:2505.05424, 2025.
 
 * **Important note:**
 
