@@ -25,15 +25,17 @@ The version of DOTSOCP is distributed under the GNU AFFERO GENERAL PUBLIC LICENS
 
 ### Usage
 
-About the codes of DOTSOCP:
+DOTSOCP includes three core solvers:
 
-* Codes in the folder `socp/dot1d` are for 1-dimensional DOT
+* The folder `socp/dot1d` is for 1-dimensional DOT
 
-* Codes in the folder `socp/dot2d` are for 2-dimensional DOT
+* The folder `socp/dot2d` is for 2-dimensional DOT
 
-* Codes in the folder `socp/wdot2d` are for 2-dimensional Weighted DOT
+* The folder `socp/wdot2d` is for 2-dimensional Weighted DOT
 
-Users can run some simple demos:
+These solvers are organized into independent folders to ensure each implementation is self-contained, facilitating focused usage and easy modification for specific problems.
+
+To get started, users can run some simple demos:
 
 * `/demo_dot1d.m` is for 1-dimensional DOT
 

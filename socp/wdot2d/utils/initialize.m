@@ -11,9 +11,6 @@ n = nx*ny*nt;
 model.rho0 = rho0;
 model.rho1 = rho1;
 
-rho0 = rho0(:);
-rho1 = rho1(:);
-
 %% params
 % index of (bx, by)
 qInd = {};
@@ -33,19 +30,16 @@ var.qInd = qInd;
 
 %% Poisson
 % Grad
-gradt = gene_Dt(nt, nx, ny, ht);
-gradx = gene_Dx(nt, nx, ny, hx);
-grady = gene_Dy(nt, nx, ny, hy);
-grad = [gradt; gradx; grady];
+model.grad = [
+    gene_Dt(nt, nx, ny, ht);
+    gene_Dx(nt, nx, ny, hx);
+    gene_Dy(nt, nx, ny, hy)
+];
 
 % -c
-c = zeros(n, 1);
-c(1:nx*ny) = -rho0 / ht;
-c(end-nx*ny+1:end) = rho1 / ht;
-
-% output
-model.grad = grad; % grad
-model.c    = c;    % -c
+model.c = zeros(n, 1);
+model.c(1:nx*ny) = -rho0(:) / ht;
+model.c(end-nx*ny+1:end) = rho1(:) / ht;
 
 %% Initlization
 % phi
@@ -59,8 +53,12 @@ var.z        = zeros(lenA, 10);
 var.beta     = zeros(lenA, 10);
 
 % q, alpha
-var.q        = zeros(size(grad, 1), 1);
-var.alpha    = zeros(size(grad, 1), 1);
+var.q        = zeros(size(model.grad, 1), 1);
+var.alpha    = zeros(size(model.grad, 1), 1);
+
+% Wrap as handles
+var   = VarHandle(var);
+model = ModelHandle(model);
 
 end
 

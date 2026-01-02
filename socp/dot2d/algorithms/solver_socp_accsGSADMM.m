@@ -1,4 +1,4 @@
-function [var_out, runHist, sigma] = solver_socp_accsGSADMM(var, opts, model)
+function [runHist, sigma] = solver_socp_accsGSADMM(var, opts, model)
 %% An accelerated sGS-based ADMM for solving the SOCP reformulation of Dynamic Optimal Transport:
 %       min <c, \phi> + \delta_{Q}(z)
 %       s.t.    A \phi - q = 0,
@@ -111,7 +111,6 @@ ny      = model.ny;
 nt      = model.nt;
 h       = 1 / (nx*ny*nt);
 A       = model.grad; % Grad
-At      = transpose(A); % -Div
 c       = model.c;
 
 sigma_adjust_it_gap = max(1, power(nt*nx*ny, 1/3) / 33);
@@ -120,11 +119,11 @@ sgs_superior_yes = false;
 tol_sgs_blocks = 5 * tol;
 
 % iterative variable
-phi     = var.phi;
-q       = var.q;
-z       = var.z;
-alpha   = var.alpha;
-beta    = var.beta;
+phi     = var.phi;   var.phi   = [];
+q       = var.q;     var.q     = [];
+z       = var.z;     var.z     = [];
+alpha   = var.alpha; var.alpha = [];
+beta    = var.beta;  var.beta  = [];
 
 % preprocessing
 diagQInv = 1 ./ oper_q(ny, nx, nt, D, E);
@@ -168,7 +167,6 @@ phi = phi - integralL2(phi, h);
 % Preallocation
 z2 = zeros((nt-1)*nx*ny, 10);
 q2 = zeros((nt-1)*nx*ny + nt*(nx-1)*ny + nt*nx*(ny-1), 1);
-projZBta = zeros((nt-1)*nx*ny, 10);
 [phiOld, zOld, qOld, alphaOld, betaOld] = CopyVar(phi, z, q, alpha, beta);
 k = 0;
 
@@ -255,7 +253,7 @@ for it = 1 : maxit
 
     % step phi
     clock_lineq = tic();
-    mexsGS(phi, At * (q - alpha) + c, 0, scaleLap, nt, nx, ny, sGSits);
+    mexsGS(phi, A' * (q - alpha) + c, 0, scaleLap, nt, nx, ny, sGSits);
     time_lineq  = time_lineq + toc(clock_lineq);
 
     clock_kkt = tic();
@@ -263,7 +261,7 @@ for it = 1 : maxit
     check_kkt_yes = checkSByS || adjustSigmaYes || (it == maxit) || (toc(clock_total) > time_limit);
     if check_kkt_yes
         % Error of sGS blocks
-        tmp_resi_sGS = At * (A * phi - q + alpha) - c;
+        tmp_resi_sGS = A' * (A * phi - q + alpha) - c;
         % resi_sGS_1 = normL2(tmp_resi_sGS(1:2:end), h);
         % resi_sGS_2 = normL2(tmp_resi_sGS(2:2:end), h);
         resi_sGS_blocks = normL2(tmp_resi_sGS(1:2:end), h);
@@ -275,70 +273,12 @@ for it = 1 : maxit
     mexProjSoc(z, z2 - beta);
     time_proj = time_proj + toc(clock_proj);
     
-    % step interpolation
-    clock_interp = tic();
-    if HalpernYes
-        % Halpern Iteration
-        c1    =   1   / (k+2);
-        c2    = (k+1) / (k+2);
-        phi   = c1 * phi0   + c2 * ( (1-stepRho) * phiOld   + stepRho * phi  );
-        z     = c1 * z0     + c2 * ( (1-stepRho) * zOld     + stepRho * z    );
-        q     = c1 * q0     + c2 * ( (1-stepRho) * qOld     + stepRho * q    );
-        alpha = c1 * alpha0 + c2 * ( (1-stepRho) * alphaOld + stepRho * alpha);
-        beta  = c1 * beta0  + c2 * ( (1-stepRho) * betaOld  + stepRho * beta );
-
-        k = k + 1;
-        [phiOld, zOld, qOld, alphaOld, betaOld] = CopyVar(phi, z, q, alpha, beta);
-    
-        % restart
-        if k >= restart
-            k = 0;
-            [phi0, z0, q0, alpha0, beta0] = CopyVar(phi, z, q, alpha, beta);
-        end
-    else
-        phiHat   = (1-stepRho) * phiOld   + stepRho * phi;
-        zHat     = (1-stepRho) * zOld     + stepRho * z;
-        qHat     = (1-stepRho) * qOld     + stepRho * q;
-        alphaHat = (1-stepRho) * alphaOld + stepRho * alpha;
-        betaHat  = (1-stepRho) * betaOld  + stepRho * beta;
-    
-        if (k == 0)
-            c1 = stepAlpha / (2 * (k + stepAlpha));
-            phi   = (1 - c1) * phiOld   + c1 * phiHat  ;
-            z     = (1 - c1) * zOld     + c1 * zHat    ;
-            q     = (1 - c1) * qOld     + c1 * qHat    ;
-            alpha = (1 - c1) * alphaOld + c1 * alphaHat;
-            beta  = (1 - c1) * betaOld  + c1 * betaHat ;
-        else
-            c1    = stepAlpha / (2 * (k + stepAlpha));
-            c2    = k / (k + stepAlpha);
-            phi   = (1 - c1) * phiOld   + (c1 + c2) * phiHat   - c2 * phiHatOld  ;
-            z     = (1 - c1) * zOld     + (c1 + c2) * zHat     - c2 * zHatOld    ;
-            q     = (1 - c1) * qOld     + (c1 + c2) * qHat     - c2 * qHatOld    ;
-            alpha = (1 - c1) * alphaOld + (c1 + c2) * alphaHat - c2 * alphaHatOld;
-            beta  = (1 - c1) * betaOld  + (c1 + c2) * betaHat  - c2 * betaHatOld ;
-        end
-
-        k = k + 1;
-        [phiOld, zOld, qOld, alphaOld, betaOld] = CopyVar(phi, z, q, alpha, beta);
-
-        % restart
-        if k >= restart
-            k = 0;
-        else
-            [phiHatOld, zHatOld, qHatOld, alphaHatOld, betaHatOld] = deal(phiHat, zHat, qHat, alphaHat, betaHat);
-        end
-    end
-    time_interp = time_interp + toc(clock_interp);
-    
     % kkt
     clock_kkt = tic();
     if check_kkt_yes
         % Precomputation
         %   temp
         mexBFdConj(q2, beta, nt, nx, ny, scaleBF);
-        mexBFd(z2, q, nt, nx, ny, scaleBF, scaleD);
-        mexProjSoc(projZBta, z - sigma * beta);
         tmp_q = A * phi;
         resi_alpha = tmp_q - q;
         %   norm
@@ -348,30 +288,18 @@ for it = 1 : maxit
         norm_alpha  = sigma * normL2(alpha, h);
         norm_beta   = sigma * FnormL2(beta, h);
         norm_FBbeta = sigma * normL2(q2, h);
-        %   alpha1
-        qInd  = var.qInd;
-        rhoT = (sigma * cScale * D) * alpha(1 : qInd.bx-1);
-        rhoFq = rhoT + (dScale / D) * q(1 : (nt-1)*ny*nx) + sum(((dScale / E) * z2(:, 2:9)).^2, 2) / 4;
-        rhoFq(rhoFq < 0) = 0;
-        normRho = normL2(rhoT, h);
-        norm_rhoFq  = normL2(rhoFq, h);
-        %   alpha2
-        rho = movmean(cat(3, zeros(ny, nx), reshape(rhoT, ny, nx, nt-1), zeros(ny, nx)), 2, 3, "Endpoints", "discard");
-        rhoBx = (dScale / D) * ( reshape(movmean(rho, 2, 2, "Endpoints", "discard"), [], 1) .* q(qInd.bx : qInd.by-1) );
-        rhoBy = (dScale / D) * ( reshape(movmean(rho, 2, 1, "Endpoints", "discard"), [], 1) .* q(qInd.by : end) );
-        mx = (sigma * cScale * D) * alpha(qInd.bx : qInd.by-1);
-        my = (sigma * cScale * D) * alpha(qInd.by : end);
-        normM = sqrt(normL2(mx, h)^2 + normL2(my, h)^2);
-        normRhoB = sqrt(normL2(rhoBx, h)^2 + normL2(rhoBy, h)^2);
 
         % KKT residuals
+        mexProjSoc(z2, z - sigma * beta);
+        complem    = FnormL2(z - z2, h);
+        mexBFd(z2, q, nt, nx, ny, scaleBF, scaleD);
+
         primFea1   = normL2(resi_alpha, h);
         primFea2   = FnormL2(z - z2, h);
-        dualFea1   = sigma * normL2(At*alpha - c, h);
-        complem    = FnormL2(z - projZBta, h);
+        dualFea1   = sigma * normL2(A'*alpha - c, h);
         dualFea2   = sigma * normL2(q2 + alpha, h);
-        dotcomplem = normL2(rhoT - rhoFq, h);
-        mRhoB      = sqrt(normL2(mx - rhoBx, h)^2 + normL2(my - rhoBy, h)^2);
+
+        [dotcomplem, normRho, norm_rhoFq, mRhoB, normM, normRhoB] = compute_kkt_dot_complement(q, alpha, z2, sigma, h, nt, nx, ny, var.qInd, cScale, dScale, D, E);
         
         % Relative KKT residuals
         KKTResiOrg = [
@@ -429,7 +357,7 @@ for it = 1 : maxit
         end
     
         % Update Lagrangian parameter
-        kkt_sgs_blocks = sqrt(normL2(At * resi_alpha, h)^2 + (dualFea1 / sigma)^2);
+        kkt_sgs_blocks = sqrt(normL2(A' * resi_alpha, h)^2 + (dualFea1 / sigma)^2);
         sgs_superior_yes = resi_sGS_blocks < sigma_adjust_val_gap * kkt_sgs_blocks;
 
         if (printYes)
@@ -468,9 +396,11 @@ for it = 1 : maxit
                     end
     
                     if factor ~= 1
-                        [alpha, alphaOld] = deal(alpha / factor);
-                        [beta,  betaOld ] = deal(beta / factor);
-                        c                 = c / factor;
+                        alpha       = alpha     / factor;
+                        alphaOld    = alphaOld  / factor;
+                        beta        = beta      / factor;
+                        betaOld     = betaOld   / factor;
+                        c           = c         / factor;
     
                         % restart
                         k = 0;
@@ -492,7 +422,7 @@ for it = 1 : maxit
         % norm_q    = normL2(q, h);
         % norm_Aphi = normL2(tmp_q, h);
         primFea1  = normL2(A * phi - q, h);
-        dualFea1  = sigma * normL2(At*alpha - c, h);
+        dualFea1  = sigma * normL2(A'*alpha - c, h);
 
         if use_feasOrg
             relaPrimFeaDec = primFea1 / ( (kktConst * D / dScale + norm_Aphi + norm_q) * KKTResi(1));
@@ -509,24 +439,85 @@ for it = 1 : maxit
         FeasRatio(it) = FeasRatio(it-1);
     end
     time_kkt = time_kkt + toc(clock_kkt);
+
+    % step interpolation
+    clock_interp = tic();
+    if HalpernYes
+        % Halpern Iteration
+        c1    =   1   / (k+2);
+        c2    = (k+1) / (k+2);
+        phi   = c1 * phi0   + c2 * ( (1-stepRho) * phiOld   + stepRho * phi  );
+        z     = c1 * z0     + c2 * ( (1-stepRho) * zOld     + stepRho * z    );
+        q     = c1 * q0     + c2 * ( (1-stepRho) * qOld     + stepRho * q    );
+        alpha = c1 * alpha0 + c2 * ( (1-stepRho) * alphaOld + stepRho * alpha);
+        beta  = c1 * beta0  + c2 * ( (1-stepRho) * betaOld  + stepRho * beta );
+
+        k = k + 1;
+        [phiOld, zOld, qOld, alphaOld, betaOld] = CopyVar(phi, z, q, alpha, beta);
+    
+        % restart
+        if k >= restart
+            k = 0;
+            [phi0, z0, q0, alpha0, beta0] = CopyVar(phi, z, q, alpha, beta);
+        end
+    else
+        phiHat   = (1-stepRho) * phiOld   + stepRho * phi;
+        zHat     = (1-stepRho) * zOld     + stepRho * z;
+        qHat     = (1-stepRho) * qOld     + stepRho * q;
+        alphaHat = (1-stepRho) * alphaOld + stepRho * alpha;
+        betaHat  = (1-stepRho) * betaOld  + stepRho * beta;
+    
+        if (k == 0)
+            c1 = stepAlpha / (2 * (k + stepAlpha));
+            phi   = (1 - c1) * phiOld   + c1 * phiHat  ;
+            z     = (1 - c1) * zOld     + c1 * zHat    ;
+            q     = (1 - c1) * qOld     + c1 * qHat    ;
+            alpha = (1 - c1) * alphaOld + c1 * alphaHat;
+            beta  = (1 - c1) * betaOld  + c1 * betaHat ;
+        else
+            c1    = stepAlpha / (2 * (k + stepAlpha));
+            c2    = k / (k + stepAlpha);
+            phi   = (1 - c1) * phiOld   + (c1 + c2) * phiHat   - c2 * phiHatOld  ;
+            z     = (1 - c1) * zOld     + (c1 + c2) * zHat     - c2 * zHatOld    ;
+            q     = (1 - c1) * qOld     + (c1 + c2) * qHat     - c2 * qHatOld    ;
+            alpha = (1 - c1) * alphaOld + (c1 + c2) * alphaHat - c2 * alphaHatOld;
+            beta  = (1 - c1) * betaOld  + (c1 + c2) * betaHat  - c2 * betaHatOld ;
+        end
+
+        k = k + 1;
+        [phiOld, zOld, qOld, alphaOld, betaOld] = CopyVar(phi, z, q, alpha, beta);
+
+        % restart
+        if k >= restart
+            k = 0;
+        else
+            [phiHatOld, zHatOld, qHatOld, alphaHatOld, betaHatOld] = deal(phiHat, zHat, qHat, alphaHat, betaHat);
+        end
+    end
+    time_interp = time_interp + toc(clock_interp);
 end
 time_total = toc(clock_total);
 
 %% output
-var_out = var;
-var_out.name = 'Accelerated symmetric Gauss-Seidel based ADMM';
+var.name = 'Accelerated symmetric Gauss-Seidel based ADMM';
 
 % Iterative var
-var_out.phi = phi;
-var_out.q = q;
-var_out.z = z;
-var_out.alpha = sigma * alpha;
-var_out.beta = sigma * beta;
+var.phi = phi;
+var.q = q;
+var.z = z;
+var.alpha = sigma * alpha;
+var.beta = sigma * beta;
 
 % Time
 times = [time_lineq, time_proj, time_multiplier, time_q, time_interp, time_kkt, time_total, it];
 names = {'Step_1_1_sGS', 'Step_1_2_ProjSOC', 'Step_2_Multiplier' , 'Step_3_Q_Step', 'Step_4_Interp', 'KKT', 'Total_Time', 'Iters'};
-var_out.time = record_time(times, names);
+var.time = record_time(times, names);
+
+% Scaling factor
+var.cScale = cScale;
+var.dScale = dScale;
+var.D      = D;
+var.E      = E;
 
 % Running history
 runHist.len = runHistItems;
@@ -534,12 +525,6 @@ runHist.kkt(runHistItems+1 : end, :)   = [];
 runHist.time(runHistItems+1 : end)     = [];
 runHist.iter(runHistItems+1 : end)     = [];
 runHist.pdGap(runHistItems+1 : end)    = [];
-
-% Scaling factor
-var_out.cScale = cScale;
-var_out.dScale = dScale;
-var_out.D      = D;
-var_out.E      = E;
 
 % Recover sigma
 sigma = sigma / sigmaScale;

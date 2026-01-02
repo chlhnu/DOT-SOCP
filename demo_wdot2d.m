@@ -7,7 +7,7 @@ addpath("examples/wdot2d/");
 addpath("socp/wdot2d/");
 
 % KKT error tolerance
-tol = 1e-5;
+tol = 1e-3;
 
 % Discrete grid
 nt = 2^7 + 1;
@@ -24,10 +24,12 @@ levelN = 3;
 %   "example3"  - Example 5.3
 %   "example4"  - Example 5.4
 %   "circle"    - Circular densities
+%   "circle2"   - Circular densities (used in obstacle of rectangle)
 %   "example6"  - Densities of example 5.6
 %   "maze14"    - Densities from [Optimal Transport with Proximal Splitting. SIAM Journal on Imaging Sciences, 2014.]
+%   "love-heart"- Densities for barrier of Love Heart
 
-Problem = "example6";
+Problem = "love-heart";
 [rho0, rho1] = get_example(Problem, nx, ny);
 
 %% Set weight (Type 1: directly)
@@ -39,10 +41,12 @@ Problem = "example6";
 
 %% Set weight (Type 2: based on barrier)
 % Set <barrier>
-%   gene_barrier_of_example6(); - Obstacle of Example 5.6
-%   gene_barrier_of_maze14();   - Obstacle from [Optimal Transport with Proximal Splitting. SIAM Journal on Imaging Sciences, 2014.]
+%   gene_barrier_of_example6();  - Obstacle of Example 5.6
+%   gene_barrier_of_maze14();    - Obstacle from [Optimal Transport with Proximal Splitting. SIAM Journal on Imaging Sciences, 2014.]
+%   gene_barrier_of_circle_pillar(); - Obstacle of circle and pillars
+%   gene_barrier_of_love_heart(); - Obstacle of love heart
 
-barrier = gene_barrier_of_example6();
+barrier = gene_barrier_of_love_heart();
 weight = get_weight_by_barrier(nx, ny, nt, barrier);
 
 % Check/Ensure validity of problem

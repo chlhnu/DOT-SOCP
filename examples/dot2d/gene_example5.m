@@ -2,8 +2,10 @@ function [rho0, rho1] = gene_example5(nx, ny)
 %% Example 5.5
 
 % read img
-rho0 = imresize(imread('centaur.bmp'), [ny-1, nx-1]);
-rho1 = imresize(imread('man.bmp'), [ny-1, nx-1]);
+thisDir = fileparts(mfilename('fullpath'));
+rho0 = imresize(imread(fullfile(thisDir, 'resources', 'centaur.bmp')), [ny-1, nx-1]);
+rho1 = imresize(imread(fullfile(thisDir, 'resources', 'man.bmp')), [ny-1, nx-1]);
+
 
 % color inversion
 rho0 = double(255 - rho0) / 255;

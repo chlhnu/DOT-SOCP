@@ -1,7 +1,8 @@
 function barrier = gene_barrier_of_maze14()
 %% Generate a labyrinth-shaped obstacle, which is a labyrinth from [Optimal Transport with Proximal Splitting. SIAM Journal on Imaging Sciences, 2014.]
 
-barrier = imread('maze-14.png');
+thisDir = fileparts(mfilename('fullpath'));
+barrier = imread(fullfile(thisDir, 'resources', 'maze-14.png'));
 maxVal  = max(barrier, [], 'all');
 barrier = (maxVal - barrier) * (255 / maxVal);
 

@@ -210,19 +210,19 @@ model.weight = weights{1};
 % Multilevel
 for level = 1 : levelN
     % Initial scaling
-    [var, model] = InitialScaling(var, model, scalingYes, lastLevelKKT);
+    InitialScaling(var, model, scalingYes, lastLevelKKT);
     
     % Solve
     optsML.tol = tols{level};
 
     if ismember(method, ["inPALM", "ALG2"])
-        [var, runHist, sigma] = solver_wsocp_inPALM(var, optsML, model);
+        [runHist, sigma] = solver_wsocp_inPALM(var, optsML, model);
     elseif strcmp(method, "acc-ADMM")
-        [var, runHist, sigma] = solver_wsocp_accADMM(var, optsML, model);
+        [runHist, sigma] = solver_wsocp_accADMM(var, optsML, model);
     end
 
     % Recover original var
-    var = recoverOrgVar(var);
+    recoverOrgVar(var);
 
     % Print message
     if (printYes)
@@ -293,14 +293,12 @@ timeML{levelN + 1} = record_time(multilevelTime, {'ML_Time'});
 end
 
 
-%% Initial scaling
-function [var, model] = InitialScaling(var, model, scalingYes, lastLevelKKT)
-    c = model.c;
-    A = model.grad;
+%% Initial scaling (var/model are handles)
+function [] = InitialScaling(var, model, scalingYes, lastLevelKKT)
     h = 1 / numel(var.phi);
     hMean = power(h, 1/3);
 
-    if isempty(lastLevelKKT) || (~isfield(var, "E2"))
+    if isempty(lastLevelKKT) || (~isprop(var, "E2"))
         Escale2 = sqrt(2);
     else
         safeguard = 4;
@@ -308,7 +306,7 @@ function [var, model] = InitialScaling(var, model, scalingYes, lastLevelKKT)
     end
 
     if scalingYes
-        norm_c      = normL2(c, h) * sqrt(model.nt);
+        norm_c      = normL2(model.c, h) * sqrt(model.nt);
         norm_d      = sqrt(2);
 
         adjust      = power(10, mean(log10(model.weight + 1e-10)));
@@ -317,21 +315,21 @@ function [var, model] = InitialScaling(var, model, scalingYes, lastLevelKKT)
         cScale      = max(1, norm_c * sqrt(hMean) / adjust);
         dScale      = E * norm_d * sqrt(adjust);
 
-        model.c     = c          / cScale;
+        model.c     = model.c    / cScale;
         model.normc = norm_c     / cScale;
         model.normd = norm_d * E / dScale;
-        model.grad  = D * A;
-        var.phi     = (1 / dScale)     * var.phi;
-        var.q       = (D / dScale)     * var.q;
-        var.z       = (E / dScale)     * var.z;
-        var.alpha   = (1 / cScale / D) * var.alpha;
-        var.beta    = (1 / cScale / E) * var.beta;
+        model.grad  = D .* model.grad;
+        var.phi     = (1 / dScale)     .* var.phi;
+        var.q       = (D / dScale)     .* var.q;
+        var.z       = (E / dScale)     .* var.z;
+        var.alpha   = (1 / cScale / D) .* var.alpha;
+        var.beta    = (1 / cScale / E) .* var.beta;
     else
         cScale      = 1;
         dScale      = 1;
         D           = 1;
         E           = 1;
-        model.normc = normL2(c, h);
+        model.normc = normL2(model.c, h);
         model.normd = sqrt(2);
     end
 
@@ -344,17 +342,17 @@ function [var, model] = InitialScaling(var, model, scalingYes, lastLevelKKT)
 end
 
 %% Recover orignal variables
-function var = recoverOrgVar(var)
+function recoverOrgVar(var)
     cScale    = var.cScale;
     dScale    = var.dScale;
     D         = var.D;
     E         = var.E;
 
-    var.phi   =    dScale    * var.phi;
-    var.z     = (dScale / E) * var.z;
-    var.q     = (dScale / D) * var.q;
-    var.alpha = (cScale * D) * var.alpha;
-    var.beta  = (cScale * E) * var.beta;
+    var.phi   =    dScale    .* var.phi;
+    var.z     = (dScale / E) .* var.z;
+    var.q     = (dScale / D) .* var.q;
+    var.alpha = (cScale * D) .* var.alpha;
+    var.beta  = (cScale * E) .* var.beta;
 end
 
 %% Cat running history

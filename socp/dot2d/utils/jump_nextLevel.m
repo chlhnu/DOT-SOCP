@@ -3,6 +3,7 @@ function [varR, modelR] = jump_nextLevel(var, model, rho0, rho1, nt)
 
 % Interpolate variables to finer grid
 varR = interpolate(var, model);
+varR = VarHandle(varR); % to handle
 
 % Initialize refined discrete model
 [var_init, modelR] = initialize(rho0, rho1, nt);

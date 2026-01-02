@@ -2,6 +2,7 @@ function [varR, modelR] = jump_nextLevel(var, model, rho0, rho1, weight, nt)
 %% Jump to the next level in the multilevel scheme
 
 varR = interpolate(var, model);
+varR = VarHandle(varR);
 
 [var_init, modelR] = initialize(rho0, rho1, nt);
 varR.qInd = var_init.qInd;
@@ -14,4 +15,3 @@ mexBFdConj(varR.alpha, - varR.beta, modelR.nt, modelR.nx, modelR.ny, 1);
 varR.alpha = varR.alpha ./ weight;
 
 end
-

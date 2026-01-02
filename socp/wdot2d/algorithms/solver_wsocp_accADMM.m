@@ -1,4 +1,4 @@
-function [var_out, runHist, sigma] = solver_wsocp_accADMM(var, opts, model)
+function [runHist, sigma] = solver_wsocp_accADMM(var, opts, model)
 %% An accelerated ADMM for solving the SOCP reformulation of Weighted Dynamic Optimal Transport:
 % (D)   min <c, \phi> + \delta_{Q}(z)
 %       s.t.    A \phi - D_w q = 0,
@@ -115,15 +115,14 @@ ny      = model.ny;
 nt      = model.nt;
 h       = 1 / (nx*ny*nt);
 A       = model.grad; % Grad
-At      = transpose(A); % -Div
 c       = model.c;
 
 % iterative variable
-phi     = var.phi;
-q       = var.q;
-z       = var.z;
-alpha   = var.alpha;
-beta    = var.beta;
+phi     = var.phi;   var.phi   = [];
+q       = var.q;     var.q     = [];
+z       = var.z;     var.z     = [];
+alpha   = var.alpha; var.alpha = [];
+beta    = var.beta;  var.beta  = [];
 
 % preprocessing
 kernel   = D^2 * initialize_FFTkernel(nt, nx, ny);
@@ -163,7 +162,6 @@ time_interp     = 0;
 % Preallocation
 z2 = zeros((nt-1)*nx*ny, 10);
 q2 = zeros((nt-1)*nx*ny + nt*(nx-1)*ny + nt*nx*(ny-1), 1);
-projZBta = zeros((nt-1)*nx*ny, 10);
 [phiOld, zOld, qOld, alphaOld, betaOld] = CopyVar(phi, z, q, alpha, beta);
 k = 0;
 
@@ -248,7 +246,7 @@ for it = 1 : maxit
 
     % step phi
     clock_lineq = tic();
-    phi = oper_poisson3dim(kernel, reshape(At * (weight .* q - alpha) + c, ny, nx, nt));
+    phi = oper_poisson3dim(kernel, reshape(A' * (weight .* q - alpha) + c, ny, nx, nt));
     time_lineq  = time_lineq + toc(clock_lineq);
 
     % step z
@@ -256,6 +254,124 @@ for it = 1 : maxit
     mexProjSoc(z, z2 - beta);
     time_proj = time_proj + toc(clock_proj);
     
+    % kkt
+    clock_kkt = tic();
+    adjustSigmaYes = IfAdjustSigma(it, lastSigmaIt);
+    check_kkt_yes = checkSByS || adjustSigmaYes || (it == maxit) || (toc(clock_total) > time_limit);
+    if check_kkt_yes
+        % Precomputation
+        %   temp
+        mexBFdConj(q2, beta, nt, nx, ny, scaleBF);
+        tmp_q = A * phi;
+        %   norm
+        norm_q      = normL2(q, h);
+        norm_z      = FnormL2(z, h);
+        norm_Aphi   = normL2(tmp_q, h);
+        norm_alpha  = sigma * normL2(alpha, h);
+        norm_beta   = sigma * FnormL2(beta, h);
+        norm_FBbeta = sigma * normL2(q2, h);
+
+        % KKT residues
+        mexProjSoc(z2, z - sigma * beta);
+        complem    = FnormL2(z - z2, h);
+        mexBFd(z2, q, nt, nx, ny, scaleBF, scaleD);
+
+        primFea1   = normL2(tmp_q - weight .* q, h);
+        primFea2   = FnormL2(z - z2, h);
+        dualFea1   = sigma * normL2(A'*alpha - c, h);
+        dualFea2   = sigma * normL2(q2 + weight .* alpha, h);
+
+        [dotcomplem, normRho, norm_rhoFq, mRhoB, normM, normRhoB] = compute_kkt_dot_complement(q, alpha, z2, sigma, h, nt, nx, ny, var.qInd, weight, cScale, dScale, D, E);
+        
+        % Relative KKT residues
+        KKTResiOrg = [
+            primFea1   / (kktConst * D / dScale + norm_Aphi + norm_q), ...
+            primFea2   / (kktConst * E / dScale + norm_q + norm_z), ...
+            dualFea1   / (kktConst / cScale + norm_c), ...
+            complem    / (kktConst * E / dScale + norm_z + norm_beta), ...
+            dualFea2   / (kktConst / cScale / D + norm_FBbeta + norm_alpha), ...
+            dotcomplem / (kktConst + normRho + norm_rhoFq), ...
+            mRhoB      / (kktConst + normM + normRhoB)
+        ];
+        KKTResi = [
+            primFea1   / (kktConst + norm_Aphi + norm_q), ...
+            primFea2   / (kktConst + norm_q + norm_z), ...
+            dualFea1   / (kktConst + norm_c), ...
+            complem    / (kktConst + norm_z + norm_beta), ...
+            dualFea2   / (kktConst + norm_FBbeta + norm_alpha)
+        ];
+
+        % Primal-Dual gap
+        priVal   = (sigma * cScale * dScale * h) * dot(weight .* q, alpha);
+        dualVal  = (sigma * cScale * dScale * h) * dot(c, phi);
+        pdGap    = abs(priVal - dualVal) / (1 + abs(priVal) + abs(dualVal));
+
+        % Running history
+        runHistItems = runHistItems + 1;
+        runHist.kkt(runHistItems, :) = KKTResiOrg;
+        runHist.time(runHistItems)   = toc(clock_total);
+        runHist.iter(runHistItems)   = it;
+        runHist.pdGap(runHistItems)  = pdGap;
+
+        % Print message
+        if (printYes)
+            fprintf("PrimVal: %.2E. DualVal: %.2E. Prim-Dual gap: %.2E. PrimFeas: %.2E. DualFeas: %.2E. Complement: %.2E.\n", ...
+                priVal, dualVal, pdGap, max(KKTResiOrg([1,2])), max(KKTResiOrg([3,5])), KKTResiOrg(4));
+        end
+
+        if (printDotYes)
+            fprintf("PrimVal: %.2E. DualVal: %.2E. Prim-Dual gap: %.2E. DualFeas: %.2E. PrimFeas: %.2E. Compleme: %.2E. PrimDualFeas: %.2E.\n", ...
+                priVal, dualVal, pdGap, KKTResiOrg(1), KKTResiOrg(3), KKTResiOrg(6), KKTResiOrg(7));
+        end
+
+        % Stop criterion
+        if max(KKTResiOrg(stopCondition)) < tol || ...
+                toc(clock_total) > time_limit
+            break;
+        end
+
+        % Use original KKT
+        if max(KKTResi) < tol_feasOrg
+            use_feasOrg = 1;
+        end
+    
+        % Update Lagrangian parameter
+        if adjustSigmaYes
+            lastSigmaIt = it;
+            
+            if use_feasOrg
+                resiPri  = max(KKTResiOrg([1,2]));
+                resiDual = max(KKTResiOrg([3,5]));
+            else
+                resiPri  = max(KKTResi([1,2]));
+                resiDual = max(KKTResi([3,5]));
+            end
+
+            [sigma, factor] = adjust_lagrangianParam(sigma, resiPri / resiDual, updateRule);
+
+            if factor ~= 1
+                alpha       = alpha     / factor;
+                alphaOld    = alphaOld  / factor;
+                beta        = beta      / factor;
+                betaOld     = betaOld   / factor;
+                c           = c         / factor;
+
+                % restart
+                k = 0;
+                if HalpernYes
+                    [phi0, z0, q0, alpha0, beta0] = CopyVar(phi, z, q, alpha, beta);
+                end
+            end
+        end
+
+        % Information for rescaling
+        if (rescale > 0)
+            maxFeas = max(KKTResi);
+            relGap  = pdGap;
+        end
+    end
+    time_kkt = time_kkt + toc(clock_kkt);
+
     % step interpolation
     clock_interp = tic();
     if HalpernYes
@@ -310,156 +426,29 @@ for it = 1 : maxit
         end
     end
     time_interp = time_interp + toc(clock_interp);
-    
-    % kkt
-    clock_kkt = tic();
-    adjustSigmaYes = IfAdjustSigma(it, lastSigmaIt);
-    check_kkt_yes = checkSByS || adjustSigmaYes || (it == maxit) || (toc(clock_total) > time_limit);
-    if check_kkt_yes
-        % Precomputation
-        %   temp
-        mexBFdConj(q2, beta, nt, nx, ny, scaleBF);
-        mexBFd(z2, q, nt, nx, ny, scaleBF, scaleD);
-        mexProjSoc(projZBta, z - sigma * beta);
-        tmp_q = A * phi;
-        tmp_qw = weight .* q;
-        Dalpha = weight .* alpha;
-        %   norm
-        norm_q      = normL2(q, h);
-        norm_z      = FnormL2(z, h);
-        norm_Aphi   = normL2(tmp_q, h);
-        norm_alpha  = sigma * normL2(alpha, h);
-        norm_beta   = sigma * FnormL2(beta, h);
-        norm_FBbeta = sigma * normL2(q2, h);
-        %   alpha1
-        qInd  = var.qInd;
-        rhoT = (sigma * cScale * D) * Dalpha(1 : qInd.bx-1);
-        rhoFq = rhoT + (dScale / D) * q(1 : (nt-1)*ny*nx) + sum(((dScale / E) * z2(:, 2:9)).^2, 2) / 4;
-        rhoFq(rhoFq < 0) = 0;
-        normRho = normL2(rhoT, h);
-        norm_rhoFq  = normL2(rhoFq, h);
-        %   alpha2
-        rho = movmean(cat(3, zeros(ny, nx), reshape(rhoT, ny, nx, nt-1), zeros(ny, nx)), 2, 3, "Endpoints", "discard");
-        rhoBx = (dScale / D) * ( reshape(movmean(rho, 2, 2, "Endpoints", "discard"), [], 1) .* q(qInd.bx : qInd.by-1) );
-        rhoBy = (dScale / D) * ( reshape(movmean(rho, 2, 1, "Endpoints", "discard"), [], 1) .* q(qInd.by : end) );
-        mx = (sigma * cScale * D) * Dalpha(qInd.bx : qInd.by-1);
-        my = (sigma * cScale * D) * Dalpha(qInd.by : end);
-        normM = sqrt(normL2(mx, h)^2 + normL2(my, h)^2);
-        normRhoB = sqrt(normL2(rhoBx, h)^2 + normL2(rhoBy, h)^2);
-
-        % KKT residues
-        primFea1   = normL2(tmp_q - tmp_qw, h);
-        primFea2   = FnormL2(z - z2, h);
-        dualFea1   = sigma * normL2(At*alpha - c, h);
-        complem    = FnormL2(z - projZBta, h);
-        dualFea2   = sigma * normL2(q2 + Dalpha, h);
-        dotcomplem = normL2(rhoT - rhoFq, h);
-        mRhoB      = sqrt(normL2(mx - rhoBx, h)^2 + normL2(my - rhoBy, h)^2);
-        
-        % Relative KKT residues
-        KKTResiOrg = [
-            primFea1   / (kktConst * D / dScale + norm_Aphi + norm_q), ...
-            primFea2   / (kktConst * E / dScale + norm_q + norm_z), ...
-            dualFea1   / (kktConst / cScale + norm_c), ...
-            complem    / (kktConst * E / dScale + norm_z + norm_beta), ...
-            dualFea2   / (kktConst / cScale / D + norm_FBbeta + norm_alpha), ...
-            dotcomplem / (kktConst + normRho + norm_rhoFq), ...
-            mRhoB      / (kktConst + normM + normRhoB)
-        ];
-        KKTResi = [
-            primFea1   / (kktConst + norm_Aphi + norm_q), ...
-            primFea2   / (kktConst + norm_q + norm_z), ...
-            dualFea1   / (kktConst + norm_c), ...
-            complem    / (kktConst + norm_z + norm_beta), ...
-            dualFea2   / (kktConst + norm_FBbeta + norm_alpha)
-        ];
-
-        % Primal-Dual gap
-        priVal   = (sigma * cScale * dScale * h) * dot(tmp_qw, alpha);
-        dualVal  = (sigma * cScale * dScale * h) * dot(c, phi);
-        pdGap    = abs(priVal - dualVal) / (1 + abs(priVal) + abs(dualVal));
-
-        % Running history
-        runHistItems = runHistItems + 1;
-        runHist.kkt(runHistItems, :) = KKTResiOrg;
-        runHist.time(runHistItems)   = toc(clock_total);
-        runHist.iter(runHistItems)   = it;
-        runHist.pdGap(runHistItems)  = pdGap;
-
-        % Print message
-        if (printYes)
-            fprintf("PrimVal: %.2E. DualVal: %.2E. Prim-Dual gap: %.2E. PrimFeas: %.2E. DualFeas: %.2E. Complement: %.2E.\n", ...
-                priVal, dualVal, pdGap, max(KKTResiOrg([1,2])), max(KKTResiOrg([3,5])), KKTResiOrg(4));
-        end
-
-        if (printDotYes)
-            fprintf("PrimVal: %.2E. DualVal: %.2E. Prim-Dual gap: %.2E. DualFeas: %.2E. PrimFeas: %.2E. Compleme: %.2E. PrimDualFeas: %.2E.\n", ...
-                priVal, dualVal, pdGap, KKTResiOrg(1), KKTResiOrg(3), KKTResiOrg(6), KKTResiOrg(7));
-        end
-
-        % Stop criterion
-        if max(KKTResiOrg(stopCondition)) < tol || ...
-                toc(clock_total) > time_limit
-            break;
-        end
-
-        % Use original KKT
-        if max(KKTResi) < tol_feasOrg
-            use_feasOrg = 1;
-        end
-    
-        % Update Lagrangian parameter
-        if adjustSigmaYes
-            lastSigmaIt = it;
-            
-            if use_feasOrg
-                resiPri  = max(KKTResiOrg([1,2]));
-                resiDual = max(KKTResiOrg([3,5]));
-            else
-                resiPri  = max(KKTResi([1,2]));
-                resiDual = max(KKTResi([3,5]));
-            end
-
-            [sigma, factor] = adjust_lagrangianParam(sigma, resiPri / resiDual, updateRule);
-
-            if factor ~= 1
-                [alpha, alphaOld] = deal(alpha / factor);
-                [beta,  betaOld ] = deal(beta  / factor);
-                c                 =        c   / factor;
-
-                % restart
-                k = 0;
-                if HalpernYes
-                    [phi0, z0, q0, alpha0, beta0] = CopyVar(phi, z, q, alpha, beta);
-                end
-            end
-        end
-
-        % Information for rescaling
-        if (rescale > 0)
-            maxFeas = max(KKTResi);
-            relGap  = pdGap;
-        end
-    end
-    time_kkt = time_kkt + toc(clock_kkt);
 end
 time_total = toc(clock_total);
 
 %% output
-var_out = var;
-var_out.name = 'Accelerated ADMM';
+var.name = 'Accelerated ADMM';
 
 % Iterative var
-var_out.phi = phi;
-var_out.q = q;
-var_out.z = z;
-var_out.alpha = sigma * alpha;
-var_out.beta = sigma * beta;
+var.phi = phi;
+var.q = q;
+var.z = z;
+var.alpha = sigma * alpha;
+var.beta = sigma * beta;
 
 % Time
 times = [time_q, time_multiplier, time_lineq, time_proj, time_interp,time_kkt, time_total, it];
 names = {'Step_1_Q_Step', 'Step_2_Multiplier', 'Step_3_1_FFT', 'Step_3_2_ProjSOC', 'Step_4_Interp', 'KKT', 'Total_Time', 'Iters'};
-var_out.time = record_time(times, names);
+var.time = record_time(times, names);
+
+% Scaling factor
+var.cScale = cScale;
+var.dScale = dScale;
+var.D      = D;
+var.E      = E;
 
 % Running history
 runHist.len = runHistItems;
@@ -467,12 +456,6 @@ runHist.kkt(runHistItems+1 : end, :)   = [];
 runHist.time(runHistItems+1 : end)     = [];
 runHist.iter(runHistItems+1 : end)     = [];
 runHist.pdGap(runHistItems+1 : end)    = [];
-
-% Scaling factor
-var_out.cScale = cScale;
-var_out.dScale = dScale;
-var_out.D      = D;
-var_out.E      = E;
 
 % Recover sigma
 sigma = sigma / sigmaScale;

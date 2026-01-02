@@ -16,10 +16,14 @@ elseif strcmp(Problem, "example4")
     [rho0, rho1] = gene_example4(nx, ny);
 elseif strcmp(Problem, "circle")
     [rho0, rho1] = gene_exampleCircle(nx, ny);
+elseif strcmp(Problem, "circle2")
+    [rho0, rho1] = gene_exampleCircle2(nx, ny);
 elseif strcmp(Problem, "example6")
     [rho0, rho1] = gene_example6(nx, ny);
 elseif strcmp(Problem, "maze14")
     [rho0, rho1] = gene_exampleMaze14(nx, ny);
+elseif strcmp(Problem, "love-heart")
+    [rho0, rho1] = gene_exampleLoveHeart(nx, ny);
 else
     error("Novalid input: 'Problem'");
 end

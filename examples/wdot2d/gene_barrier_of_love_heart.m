@@ -1,0 +1,16 @@
+function barrier = gene_barrier_of_love_heart()
+%% Generate labyrinth-shaped obstacles for Example of Love Heart
+
+heart_func = @(x, y, s) ( ...
+    ((s*(x-0.5)).^2 + (s*(y-0.5)).^2 - 1).^3 - (s*(x-0.5)).^2 .* (s*(y-0.5)).^3 ...
+);
+s_outer = 2.5;   
+s_inner = 15;  
+
+barrier = @(x, y) ( ...
+    heart_func(x, y+0.05, s_outer) > 0 | ...  
+    heart_func(x, y, s_inner) <= 0 ...
+);
+
+end
+

@@ -1,4 +1,4 @@
-function [var_out, runHist, sigma] = solver_socp_inPALM(var, opts, model)
+function [runHist, sigma] = solver_socp_inPALM(var, opts, model)
 %% An inexact proximal ALM for solving the SOCP reformulation of Dynamic Optimal Transport (1 dimension):
 %       min <c, \phi> + \delta_{Q}(z)
 %       s.t.    A \phi - q = 0,
@@ -82,15 +82,14 @@ nx      = model.nx;
 nt      = model.nt;
 h       = 1 / (nx*nt);
 A       = model.grad; % Grad
-At      = transpose(A); % -Div
 c       = model.c;
 
 % iterative variable
-phi     = var.phi;
-q       = var.q;
-z       = var.z;
-alpha   = var.alpha;
-beta    = var.beta;
+phi     = var.phi;   var.phi   = [];
+q       = var.q;     var.q     = [];
+z       = var.z;     var.z     = [];
+alpha   = var.alpha; var.alpha = [];
+beta    = var.beta;  var.beta  = [];
 
 % preprocessing
 kernel   = D^2 * initialize_FFTkernel(nt, nx);
@@ -130,7 +129,6 @@ time_kkt        = 0;
 % Preallocation
 z2 = zeros(size(z));
 q2 = zeros(size(q));
-projZBta = zeros(size(z));
 mexBFd1d(z2, q, nt, nx, scaleBF, scaleD);
 
 clock_total = tic();
@@ -192,7 +190,7 @@ for it = 1 : maxit
 
     % step phi
     clock_lineq = tic();
-    phi = oper_poisson(kernel, reshape(At * (q - alpha) + c, nx, nt));
+    phi = oper_poisson(kernel, reshape(A' * (q - alpha) + c, nx, nt));
     time_lineq  = time_lineq + toc(clock_lineq);
     
     % step z
@@ -224,7 +222,6 @@ for it = 1 : maxit
         % Precomputation
         %   temp
         mexBFdConj1d(q2, beta, nt, nx, scaleBF);
-        mexProjSoc(projZBta, z - sigma * beta);
         %   norm
         norm_q      = normL2(q, h);
         norm_z      = FnormL2(z, h);
@@ -232,28 +229,18 @@ for it = 1 : maxit
         norm_alpha  = sigma * normL2(alpha, h);
         norm_beta   = sigma * FnormL2(beta, h);
         norm_FBbeta = sigma * normL2(q2, h);
-        %   alpha1
-        qInd  = var.qInd;
-        rhoT = (sigma * cScale * D) * alpha(1 : qInd.bx-1);
-        rhoFq = rhoT + (dScale / D) * q(1 : qInd.bx-1) + sum(((dScale / E) * z2(:, 2:5)).^2, 2) / 4;
-        rhoFq(rhoFq < 0) = 0;
-        normRho = normL2(rhoT, h);
-        norm_rhoFq  = normL2(rhoFq, h);
-        %   alpha2
-        rho = movmean(cat(2, zeros(nx, 1), reshape(rhoT, nx, nt-1), zeros(nx, 1)), 2, 2, "Endpoints", "discard");
-        rhoBx = (dScale / D) * ( reshape(movmean(rho, 2, 1, "Endpoints", "discard"), [], 1) .* q(qInd.bx : end) );
-        mx = (sigma * cScale * D) * alpha(qInd.bx : end);
-        normM = normL2(mx, h);
-        normRhoB = normL2(rhoBx, h);
 
         % KKT residuals
         primFea1   = normL2(resi_alpha, h);
         primFea2   = FnormL2(resi_beta, h);
-        dualFea1   = sigma * normL2(At*alpha - c, h);
-        complem    = FnormL2(z - projZBta, h);
+        dualFea1   = sigma * normL2(A'*alpha - c, h);
         dualFea2   = sigma * normL2(q2 + alpha, h);
-        dotcomplem = normL2(rhoT - rhoFq, h);
-        mRhoB      = normL2(mx - rhoBx, h);
+
+        mexProjSoc(z2, z - sigma * beta);
+        complem    = FnormL2(z - z2, h);
+        mexBFd1d(z2, q, nt, nx, scaleBF, scaleD);
+        
+        [dotcomplem, normRho, norm_rhoFq, mRhoB, normM, normRhoB] = compute_kkt_dot_complement(q, alpha, z2, sigma, h, nt, nx, var.qInd, cScale, dScale, D, E);
         
         % Relative KKT residuals
         KKTResiOrg = [
@@ -338,20 +325,19 @@ end
 time_total = toc(clock_total);
 
 %% output
-var_out = var;
-var_out.name = 'Inexact Proximal ALM';
+var.name = 'Inexact Proximal ALM';
 
 % Iterative var
-var_out.phi = phi;
-var_out.q = q;
-var_out.z = z;
-var_out.alpha = sigma * alpha;
-var_out.beta = sigma * beta;
+var.phi = phi;
+var.q = q;
+var.z = z;
+var.alpha = sigma * alpha;
+var.beta = sigma * beta;
 
 % Time
 times = [time_lineq, time_proj, time_q, time_multiplier, time_kkt, time_total, it];
 names = {'Step_1_1_FFT', 'Step_1_2_ProjSOC', 'Step_2_Q_Step', 'Step_3_Multiplier', 'KKT', 'Total_Time', 'Iters'};
-var_out.time = record_time(times, names);
+var.time = record_time(times, names);
 
 % Running history
 runHist.len = runHistItems;
@@ -361,10 +347,10 @@ runHist.iter(runHistItems+1 : end)     = [];
 runHist.pdGap(runHistItems+1 : end)    = [];
 
 % Scaling factor
-var_out.cScale = cScale;
-var_out.dScale = dScale;
-var_out.D      = D;
-var_out.E      = E;
+var.cScale = cScale;
+var.dScale = dScale;
+var.D      = D;
+var.E      = E;
 
 % Recover sigma
 sigma = sigma / sigmaScale;

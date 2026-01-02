@@ -11,9 +11,6 @@ n = nx * nt;
 Model.rho0 = rho0;
 Model.rho1 = rho1;
 
-rho0 = rho0(:);
-rho1 = rho1(:);
-
 %% params
 qInd = {};
 qInd.bx  = (nt-1) * nx + 1;
@@ -29,18 +26,15 @@ Var.qInd = qInd;
 
 %% Poisson
 % Grad
-gradt = gene_Dt(nt, nx, ht);
-gradx = gene_Dx(nt, nx, hx);
-grad = [gradt; gradx];
+Model.grad = [
+    gene_Dt(nt, nx, ht);
+    gene_Dx(nt, nx, hx)
+];
 
 % -c
-c = zeros(n, 1);
-c(1:nx) = - rho0 / ht;
-c(end-nx+1:end) = rho1 / ht;
-
-% output
-Model.grad = grad; % grad
-Model.c    = c;    % -c
+Model.c = zeros(n, 1);
+Model.c(1:nx) = - rho0(:) / ht;
+Model.c(end-nx+1:end) = rho1(:) / ht;
 
 %% Initialize var
 % phi
@@ -54,8 +48,12 @@ Var.z        = zeros(lenA, 6);
 Var.beta     = zeros(lenA, 6);
 
 % q, alpha
-Var.q        = zeros(size(grad, 1), 1);
-Var.alpha    = zeros(size(grad, 1), 1);
+Var.q        = zeros(size(Model.grad, 1), 1);
+Var.alpha    = zeros(size(Model.grad, 1), 1);
+
+%% To handle
+Var = VarHandle(Var);
+Model = ModelHandle(Model);
 
 end
 

@@ -26,16 +26,23 @@ levelN = 3;
 %   "example5"  - Example 5.5
 %   "example7"  - Example 5.7
 %   "circle"    - Circular densities
-Problem = "example1";
+%   "DOTmark_4stitch" - 4-Stitch of images from DOTmark
+%        Options for "DOTmark_4stitch":
+%           "DOTmark_type"       - Type of DOTmark dataset, including "ClassicImages" and "Shapes"
+%           "stitch1_indices"    - Indices of images for rho0, list of 4 integers in [1,8], e.g., [1,2,3,4]
+%           "stitch2_indices"    - Indices of images for rho1, list of 4 integers in [1,8], e.g., [5,6,7,8]
+Problem = "DOTmark_4stitch";
 
 % Set <delta>:
 delta = 0;
 
 % Generate densities rho0 and rho1
-[rho0, rho1] = get_example(Problem, nx, ny, delta);
+[rho0, rho1] = get_example(Problem, nx, ny, delta, "DOTmark_type", "ClassicImages", "stitch1_indices", [1,2,3,4], "stitch2_indices", [5,6,7,8]);
 
 %% Set transport problem (Type 2: based on any two images)
-% [rho0, rho1] = get_example_from_images("examples/dot2d/centaur.bmp", "examples/dot2d/man.bmp", nx, ny, 'ReverseColor');
+% path_to_img1 = "examples/dot2d/resources/DOTmark/ClassicImages/1.png";
+% path_to_img2 = "examples/dot2d/resources/DOTmark/ClassicImages/8.png";
+% [rho0, rho1] = get_example_from_images(path_to_img1, path_to_img2, nx, ny);
 
 %% Set algorithm
 % <algo>:
@@ -64,7 +71,8 @@ by = output.by;
 
 %% Display
 % ---- Evolution ----
-show_evolution_2d(rho, "mesh", "Density evolution of " + algo);
+show_evolution_2d(rho, "imshow", "Density evolution of " + algo);
+% show_evolution_2d(rho, "mesh", "Density evolution of " + algo);
 % show_evolution_2d(rho, "contourf", "Density evolution of " + algo);
 % show_movement_2d(rho, Ex, Ey, "Density movement of " + algo);
 
