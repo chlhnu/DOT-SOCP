@@ -1,5 +1,5 @@
-function barrier = gene_barrier_of_example6()
-%% Generate labyrinth-shaped obstacles for Example 5.6
+function barrier = gene_barrier_of_example9()
+%% Generate obstacle used in Example 5.9 (maze)
 
 thisDir = fileparts(mfilename('fullpath'));
 barrier = imread(fullfile(thisDir, 'resources', 'maze.png'));

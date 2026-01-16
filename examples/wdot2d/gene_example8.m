@@ -1,9 +1,9 @@
-function [rho0, rho1] = gene_example6(nx, ny)
-%% Generate Gaussian densities for Example 5.6
+function [rho0, rho1] = gene_example8(nx, ny)
+%% Generate Gaussian densities used in Example 5.8 (love heart)
 
 % center, radius
-center1 = [0.925, 0.075];
-center2 = [0.075, 0.925];
+center1 = [0.7, 0.3];
+center2 = [0.345, 0.625];
 r1 = 0.09;
 r2 = 0.09;
 

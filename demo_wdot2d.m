@@ -1,4 +1,11 @@
-%% Demo: solve SOCP for Weighted Dynamic Optimal Transport (WDOT) 2D
+%% Demo: Weighted Dynamic Optimal Transport (WDOT) 2D - Quick Start
+% This demo solves a weighted 2D optimal transport problem using SOCP.
+%
+% To see all available presets, run:
+%   >> run examples/show_presets_wdot2d
+%   >> run examples/show_visual_tools_2d
+%
+% For detailed examples, see: examples/wdot2d/
 
 clear;
 path(pathdef);
@@ -6,94 +13,39 @@ addpath("utils/");
 addpath("examples/wdot2d/");
 addpath("socp/wdot2d/");
 
-% KKT error tolerance
-tol = 1e-3;
-
-% Discrete grid
-nt = 2^7 + 1;
-nx = 2^7 + 1;
+% Grid parameters
+nt = 33;
+nx = 129;
 ny = nx;
-
-% Number of levels
 levelN = 3;
 
-%% Set Initial and final density
-% Set <Problem>:
-%   "example1"  - Example 5.1
-%   "example2"  - Example 5.2
-%   "example3"  - Example 5.3
-%   "example4"  - Example 5.4
-%   "circle"    - Circular densities
-%   "circle2"   - Circular densities (used in obstacle of rectangle)
-%   "example6"  - Densities of example 5.6
-%   "maze14"    - Densities from [Optimal Transport with Proximal Splitting. SIAM Journal on Imaging Sciences, 2014.]
-%   "love-heart"- Densities for barrier of Love Heart
+%% Problem Setup
+algo = "inpALM";
 
-Problem = "love-heart";
-[rho0, rho1] = get_example(Problem, nx, ny);
-
-%% Set weight (Type 1: directly)
-% Set <Weight>
-%   gene_weight_circle();
-%   gene_weight_circleInv();
-
-% weight = gene_weight_circle(nt, nx, ny);
-
-%% Set weight (Type 2: based on barrier)
-% Set <barrier>
-%   gene_barrier_of_example6();  - Obstacle of Example 5.6
-%   gene_barrier_of_maze14();    - Obstacle from [Optimal Transport with Proximal Splitting. SIAM Journal on Imaging Sciences, 2014.]
-%   gene_barrier_of_circle_pillar(); - Obstacle of circle and pillars
-%   gene_barrier_of_love_heart(); - Obstacle of love heart
-
-barrier = gene_barrier_of_love_heart();
-weight = get_weight_by_barrier(nx, ny, nt, barrier);
-
-% Check/Ensure validity of problem
-% barrierh = check_barrier_validity(rho0, rho1, barrier);
+% -- Type 1 > Generate densities (barrier problems)
+problem = "circle-pillar"; % Try: "example8", "example9", "circle-pillar", "maze14"
+[rho0, rho1] = get_example(problem, nx, ny);
+[weight, barrier] = get_weight_from_barrier(problem, nx, ny, nt);
 [rho0, rho1, barrierh] = ensure_barrier_validity(rho0, rho1, barrier);
 
-%% Set algorithm
-% Set <algo>:
-%   "inPALM"    - Inexact proximal ALM
-%   "ALG2"      - ALG2
-%   "acc-ADMM"  - Accelerated ADMM
-algo = "inPALM";
+% -- Type 2 > Generate densities (general weighted problems)
+% problem = "example1";   % Try: "example1"-"example4", "circle"
+% weight_name = "circle"; % Try: "circle", "circleInv"
+% [rho0, rho1] = get_example(problem, nx, ny);
+% weight = get_weight(weight_name, nx, ny, nt);
+% barrier = []; barrierh = []; % No barrier
 
-%% Solver
-opts = {};
-opts.tol    = tol;
-opts.weight = weight;
-opts.maxit  = 1e4;
+%% Solve
+opts.tol = 1e-4;        % KKT error tolerance
+opts.weight = weight;   % Weight matrix
+opts.barrier = barrier; % Barrier function handle
+opts.maxit = 1e4;       % Max iteration
 
-% Solve
-if exist("barrier", "var") && ~ isempty(barrier)
-    [output, timeML, runHistML, runHist] = solver_wdotsocp2d(rho0, rho1, nt, levelN, opts, algo, barrier);
-else
-    [output, timeML, runHistML, runHist] = solver_wdotsocp2d(rho0, rho1, nt, levelN, opts, algo);
-end
+[output, timeML, runHistML, runHist] = solver_wdotsocp2d(rho0, rho1, nt, levelN, opts, algo);
 
-rho = output.rho;
-Ex  = output.Ex;
-Ey  = output.Ey;
-q0  = output.q0;
-bx  = output.bx;
-by  = output.by;
+%% Visualize Results
+show_evolution_2d(output.rho, "contourf", "Density evolution - " + algo, barrierh);
+check_massConservation_2d(output.rho);
 
-%% Display
-% ---- Evolution ----
-if ~ exist("barrierh", "var")
-    barrierh = [];
-end
-show_evolution_2d(rho, "contourf", "Density evolution of " + algo, barrierh);
-% show_movement_2d(rho, Ex, Ey, "Density movement of " + algo, barrierh);
-
-% ---- Violation of rho >= 0 ----
-% hist_negative_density(rho, "Histogram: density less than 0 of " + algo);
-
-% ---- Violation of f(q) <= 0 ----
-% hist_violation_q_2d(q0, bx, by, "Histogram: f(q) more than 0 of " + algo);
-
-% ---- Mass conservation ----
-fprintf(join(repmat("=", 64, 1), "") + "\nCheck mass conservation of %s:\n", algo);
-check_massConservation_2d(rho);
+% For more visualization options, run: 
+%   >> run examples/show_visual_tools_2d

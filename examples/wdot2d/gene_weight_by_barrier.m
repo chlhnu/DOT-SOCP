@@ -1,11 +1,11 @@
-function weight = get_weight_by_barrier(nx, ny, nt, barrier, barrierWeight)
+function weight = gene_weight_by_barrier(nx, ny, nt, barrier, barrierWeight)
 %% Generate weights based on barrier locations
 
 if ~exist("barrier", "var")
     barrier = @(x,y) false(length(y), length(x));
 end
 
-if ~exist("barrerWeight", "var")
+if ~exist("barrierWeight", "var")
     barrierWeight = 1e6;
 end
 

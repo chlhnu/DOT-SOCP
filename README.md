@@ -35,12 +35,12 @@ DOTSOCP includes three core solvers:
 
 These solvers are organized into independent folders to ensure each implementation is self-contained, facilitating focused usage and easy modification for specific problems.
 
-To get started, users can run some simple demos:
+To get started, users can run the following simple demos:
 
-* `/demo_dot1d.m` is for 1-dimensional DOT
+* `demo_dot1d.m` is for 1-dimensional DOT
 
-* `/demo_dot2d.m` is for 2-dimensional DOT
+* `demo_dot2d.m` is for 2-dimensional DOT
 
-* `/demo_wdot2d.m` is for 2-dimensional Weighted DOT
+* `demo_wdot2d.m` is for 2-dimensional Weighted DOT
 
 Thank you for your interest in our work on Dynamic Optimal Transport. We hope this repository serves as a valuable resource for furthering research in this area.

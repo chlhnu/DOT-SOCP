@@ -1,4 +1,4 @@
-function [output, timeML, runHistML, runHist] = solver_wdotsocp2d(rho0, rho1, nt, levelN, opts, method, barrier)
+function [output, timeML, runHistML, runHist] = solver_wdotsocp2d(rho0, rho1, nt, levelN, opts, method)
 %% Multilevel solver for Weighted DOT-SOCP (2 dimension)
 % Input:
 %   rho0,   initial density
@@ -7,10 +7,7 @@ function [output, timeML, runHistML, runHist] = solver_wdotsocp2d(rho0, rho1, nt
 %   levelN, number of levels in multilevel scheme
 %   opts,   algorithm parameters
 %   method, solver type, valid options include:
-%       "inPALM" (Inexact Proximal ALM), "ALG2", "acc-ADMM" (Accelerated ADMM)
-% 
-% Optional input:
-%   barrier, function handle of barrier
+%       "inpALM" (Inexact Proximal ALM), "ALG2", "acc-pADMM" (Accelerated pADMM)
 %
 % Output:
 %   output,    solution of Weighted DOT, a struct containing fields: rho, Ex, Ey
@@ -55,12 +52,6 @@ end
 cleanup_path = onCleanup(@() rmpath(dependent_paths{:}));
 
 %% Settings
-if exist("barrier", "var")
-    barrierYes = true;
-else
-    barrierYes = false;
-end
-
 % check levelN
 if ~( isnumeric(levelN) && (levelN >= 1) && (levelN == round(levelN)) )
     error("Invalid input at position 4 (Numbers of level in Multilevel strategy)");
@@ -69,10 +60,19 @@ end
 % Weight
 weight = opts.weight;
 
+% Barrier (optional, used for better downsampling densities and weight)
+if isfield(opts, "barrier") && ~ isempty(opts.barrier)
+    barrierYes = true;
+    barrier = opts.barrier;
+else
+    barrierYes = false;
+    barrier = [];
+end
+
 % check input "method"
 if ~exist("method", "var")
-    method = "inPALM";
-elseif ~ismember(method, ["inPALM", "ALG2", "acc-ADMM"])
+    method = "inpALM";
+elseif ~ismember(method, ["inpALM", "ALG2", "acc-pADMM"])
     error("Invalid input at position 6 (Solving method)");
 end
 
@@ -140,7 +140,7 @@ end
 tolLowerBound = 1e-4;
 
 % Stepsize
-if strcmp(method, "inPALM")
+if strcmp(method, "inpALM")
     optsML.tau = almStepsize;
 elseif strcmp(method, "ALG2")
     optsML.tau = alg2Stepsize;
@@ -215,10 +215,10 @@ for level = 1 : levelN
     % Solve
     optsML.tol = tols{level};
 
-    if ismember(method, ["inPALM", "ALG2"])
-        [runHist, sigma] = solver_wsocp_inPALM(var, optsML, model);
-    elseif strcmp(method, "acc-ADMM")
-        [runHist, sigma] = solver_wsocp_accADMM(var, optsML, model);
+    if ismember(method, ["inpALM", "ALG2"])
+        [runHist, sigma] = solver_wsocp_inpALM(var, optsML, model);
+    elseif strcmp(method, "acc-pADMM")
+        [runHist, sigma] = solver_wsocp_accpADMM(var, optsML, model);
     end
 
     % Recover original var

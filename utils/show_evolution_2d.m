@@ -103,8 +103,11 @@ function fig = adjust_fig(fig)
     set(axes, 'TitleFontSizeMultiplier', 16 / 12);
     set(axes, 'LineWidth', 1.5);
     set(axes, 'FontName', 'Times New Roman');
+
     arrayfun(@(ax) set(ax.XAxis, 'TickLabelInterpreter', 'latex'), axes);
     arrayfun(@(ax) set(ax.YAxis, 'TickLabelInterpreter', 'latex'), axes);
+    set(axes, 'XTick', []);
+    set(axes, 'YTick', []);
 
     set(fig, 'Color', 'w');
     set(fig, 'PaperUnits', 'inches');

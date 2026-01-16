@@ -31,12 +31,12 @@ elseif strcmp(Problem, "example4")
     [rho0, rho1] = gene_example4(nx, ny);
 elseif strcmp(Problem, "example5")
     [rho0, rho1] = gene_example5(nx, ny);
+elseif strcmp(Problem, "example6")
+    [rho0, rho1] = gene_example6(nx, ny, args.DOTmark_type, args.stitch1_indices, args.stitch2_indices);
 elseif strcmp(Problem, "example7")
     [rho0, rho1] = gene_example7(nx, ny);
 elseif strcmp(Problem, "circle")
     [rho0, rho1] = gene_exampleCircle(nx, ny);
-elseif strcmp(Problem, "DOTmark_4stitch")
-    [rho0, rho1] = gene_example_DOTmark_4stitch(nx, ny, args.DOTmark_type, args.stitch1_indices, args.stitch2_indices);
 else
     error("Novalid input: 'Problem'");
 end

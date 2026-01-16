@@ -7,9 +7,9 @@ function [output, timeML, runHistML, runHist] = solver_dotsocp2d(rho0, rho1, nt,
 %   levelN, number of levels in multilevel scheme
 %   opts,   algorithm parameters
 %   method, solver type, valid options include:
-%       "PALM" (Proximal ALM),
-%       "inPALM" (Inexact Proximal ALM), "ALG2", "acc-ADMM" (Accelerated ADMM),
-%       "sGS-inPALM" (sGS-based inPALM), "acc-sGS-ADMM" (Accelerated sGS-based ADMM)  
+%       "pALM" (Proximal ALM),
+%       "inpALM" (Inexact Proximal ALM), "ALG2", "acc-pADMM" (Accelerated pADMM),
+%       "sGS-inpALM" (sGS-based inpALM), "acc-sGS-pADMM" (Accelerated sGS-based pADMM)  
 % 
 % Output:
 %   output,    solution of DOT, a struct containing fields: rho, Ex, Ey, q0, bx, by
@@ -61,8 +61,8 @@ end
 
 % check input "method"
 if ~exist("method", "var")
-    method = "inPALM";
-elseif ~ismember(method, ["PALM", "inPALM", "ALG2", "acc-ADMM", "sGS-inPALM", "acc-sGS-ADMM"])
+    method = "inpALM";
+elseif ~ismember(method, ["pALM", "inpALM", "ALG2", "acc-pADMM", "sGS-inpALM", "acc-sGS-pADMM"])
     error("Invalid input at position 6 (Solving method)");
 end
 
@@ -90,7 +90,7 @@ if ~exist("printYes", "var")
     printYes = true;
 end
 
-sgsMethod = ismember(method, ["sGS-inPALM", "acc-sGS-ADMM"]);
+sgsMethod = ismember(method, ["sGS-inpALM", "acc-sGS-pADMM"]);
 
 % Max iteration
 admmMaxIt = 3000;
@@ -130,7 +130,7 @@ end
 tolLowerBound = 1e-4;
 
 % Stepsize
-if ismember(method, ["PALM", "inPALM", "sGS-inPALM"])
+if ismember(method, ["pALM", "inpALM", "sGS-inpALM"])
     optsML.tau = almStepsize;
 elseif strcmp(method, "ALG2")
     optsML.tau = alg2Stepsize;
@@ -202,27 +202,27 @@ for level = 1 : levelN
     optsML2 = optsML;
     optsML2.tol = tols{level};
 
-    if strcmp(method, "PALM")
-        [runHist, sigma] = solver_socp_PALM(var, optsML2, model);
-    elseif ismember(method, ["inPALM", "ALG2"])
-        [runHist, sigma] = solver_socp_inPALM(var, optsML2, model);
-    elseif strcmp(method, "sGS-inPALM")
+    if strcmp(method, "pALM")
+        [runHist, sigma] = solver_socp_pALM(var, optsML2, model);
+    elseif ismember(method, ["inpALM", "ALG2"])
+        [runHist, sigma] = solver_socp_inpALM(var, optsML2, model);
+    elseif strcmp(method, "sGS-inpALM")
         if sgsYes
-            [runHist, sigma] = solver_socp_sGSinPALM(var, optsML2, model);
+            [runHist, sigma] = solver_socp_sGSinpALM(var, optsML2, model);
         else
             optsML2.maxit = admmMaxIt;
-            [runHist, sigma] = solver_socp_inPALM(var, optsML2, model);
+            [runHist, sigma] = solver_socp_inpALM(var, optsML2, model);
         end
-    elseif ismember(method, "acc-sGS-ADMM")
+    elseif ismember(method, "acc-sGS-pADMM")
         if sgsYes
-            [runHist, sigma] = solver_socp_accsGSADMM(var, optsML2, model);
+            [runHist, sigma] = solver_socp_accsGSpADMM(var, optsML2, model);
         else
             optsML2.maxit = admmMaxIt;
             optsML2.tau   = almStepsize;
-            [runHist, sigma] = solver_socp_inPALM(var, optsML2, model);
+            [runHist, sigma] = solver_socp_inpALM(var, optsML2, model);
         end
-    elseif strcmp(method, "acc-ADMM")
-        [runHist, sigma] = solver_socp_accADMM(var, optsML2, model);
+    elseif strcmp(method, "acc-pADMM")
+        [runHist, sigma] = solver_socp_accpADMM(var, optsML2, model);
     end
 
     % Recover original var

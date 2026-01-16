@@ -1,5 +1,5 @@
-function [rho0, rho1] = gene_example_DOTmark_4stitch(nx, ny, type, stitch1_indices, stitch2_indices)
-%% Example 5.6: stitch of images from DOTmark
+function [rho0, rho1] = gene_example6(nx, ny, type, stitch1_indices, stitch2_indices)
+%% Example 5.6: 4-stitch of images from DOTmark
 
 % Check `type` input
 if ~exist("type", "var")

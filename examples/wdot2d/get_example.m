@@ -1,4 +1,4 @@
-function [rho0, rho1] = get_example(Problem, nx, ny, lowerBound)
+function [rho0, rho1] = get_example(problem, nx, ny, lowerBound)
 %% Get normalized example
 
 if ~exist('lowerBound', 'var')
@@ -6,26 +6,24 @@ if ~exist('lowerBound', 'var')
 end
 
 % Generate
-if strcmp(Problem, "example1")
+if strcmp(problem, "example1")
     [rho0, rho1] = gene_example1(nx, ny);
-elseif strcmp(Problem, "example2")
+elseif strcmp(problem, "example2")
     [rho0, rho1] = gene_example2(nx, ny);
-elseif strcmp(Problem, "example3")
+elseif strcmp(problem, "example3")
     [rho0, rho1] = gene_example3(nx, ny);
-elseif strcmp(Problem, "example4")
+elseif strcmp(problem, "example4")
     [rho0, rho1] = gene_example4(nx, ny);
-elseif strcmp(Problem, "circle")
+elseif strcmp(problem, "example8")
+    [rho0, rho1] = gene_example8(nx, ny);
+elseif strcmp(problem, "example9") || strcmp(problem, "circle-pillar")
+    [rho0, rho1] = gene_example9(nx, ny);
+elseif strcmp(problem, "circle")
     [rho0, rho1] = gene_exampleCircle(nx, ny);
-elseif strcmp(Problem, "circle2")
-    [rho0, rho1] = gene_exampleCircle2(nx, ny);
-elseif strcmp(Problem, "example6")
-    [rho0, rho1] = gene_example6(nx, ny);
-elseif strcmp(Problem, "maze14")
+elseif strcmp(problem, "maze14")
     [rho0, rho1] = gene_exampleMaze14(nx, ny);
-elseif strcmp(Problem, "love-heart")
-    [rho0, rho1] = gene_exampleLoveHeart(nx, ny);
 else
-    error("Novalid input: 'Problem'");
+    error("Novalid input: 'problem'");
 end
 
 % Add lower bound, normalization

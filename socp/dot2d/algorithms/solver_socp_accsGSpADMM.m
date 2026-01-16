@@ -1,5 +1,5 @@
-function [runHist, sigma] = solver_socp_accsGSADMM(var, opts, model)
-%% An accelerated sGS-based ADMM for solving the SOCP reformulation of Dynamic Optimal Transport:
+function [runHist, sigma] = solver_socp_accsGSpADMM(var, opts, model)
+%% An accelerated sGS-based pADMM for solving the SOCP reformulation of Dynamic Optimal Transport:
 %       min <c, \phi> + \delta_{Q}(z)
 %       s.t.    A \phi - q = 0,
 %               z - B F q  = d.
@@ -499,7 +499,7 @@ end
 time_total = toc(clock_total);
 
 %% output
-var.name = 'Accelerated symmetric Gauss-Seidel based ADMM';
+var.name = 'acc-sGS-pADMM';
 
 % Iterative var
 var.phi = phi;

@@ -1,9 +1,9 @@
-function [rho0, rho1] = gene_exampleLoveHeart(nx, ny)
-%% Generate Gaussian densities for Example of Love Heart
+function [rho0, rho1] = gene_example9(nx, ny)
+%% Generate Gaussian densities used in Example 5.9 (maze)
 
 % center, radius
-center1 = [0.7, 0.3];
-center2 = [0.345, 0.625];
+center1 = [0.925, 0.075];
+center2 = [0.075, 0.925];
 r1 = 0.09;
 r2 = 0.09;
 

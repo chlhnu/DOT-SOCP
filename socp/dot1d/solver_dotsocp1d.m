@@ -7,7 +7,7 @@ function [output, timeML, runHistML, runHist] = solver_dotsocp1d(rho0, rho1, nt,
 %   levelN, number of levels in multilevel scheme
 %   opts,   algorithm parameters
 %   method, solver type, valid options include:
-%       "inPALM" (Inexact Proximal ALM), "ALG2"
+%       "inpALM" (inexact proximal ALM), "ALG2"
 % 
 % Output:
 %   output,    solution of DOT, a struct containing fields: rho, Ex, q0, bx
@@ -59,8 +59,8 @@ end
 
 % check input "method"
 if ~exist("method", "var")
-    method = "inPALM";
-elseif ~ismember(method, ["inPALM", "ALG2"])
+    method = "inpALM";
+elseif ~ismember(method, ["inpALM", "ALG2"])
     error("Invalid input at position 6 (Solving method)");
 end
 
@@ -121,7 +121,7 @@ end
 tolLowerBound = 1e-5;
 
 % Stepsize
-if strcmp(method, "inPALM")
+if strcmp(method, "inpALM")
     optsML.tau = almStepsize;
 elseif strcmp(method, "ALG2")
     optsML.tau = alg2Stepsize;
@@ -184,7 +184,7 @@ for level = 1 : levelN
     
     % Solve
     optsML.tol = tols{level};
-    [runHist, sigma] = solver_socp_inPALM(var, optsML, model);
+    [runHist, sigma] = solver_socp_inpALM(var, optsML, model);
 
     % Recover original var
     recoverOrgVar(var);
