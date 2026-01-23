@@ -1,50 +1,45 @@
-DOTSOCP -- a MATLAB software for dynamic optimal transport problem
-================
+DOTSOCP
+============================================
 
-Liang Chen, Youyicun Lin, and  Yuxuan Zhou
-----------------
-This software is designed to solve the dynamic optimal transport (DOT) problem on a staggered grid discretization.
+DOTSOCP implements an efficient Second-Order Cone Programming (SOCP) approach for solving Dynamic Optimal Transport (DOT) on staggered grids.
+
+This repository contains the official implementation of the paper:
+
+  An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization
+  Liang Chen, Youyicun Lin, and Yuxuan Zhou
+  arXiv:2505.05424, 2025.
+
+Implementations
+---------------
+We provide two independent implementations targeting different use cases:
+
+1. MATLAB Version (Location: ./matlab/)
+
+   The original codebase used for the numerical experiments in the paper.
+   - Self-Contained Solvers: Independent implementations for DOT 1D, DOT 2D, and Weighted DOT 2D.
+   - Efficient Numerics: Delivers fast execution with a low memory footprint.
+
+2. Python Version (Location: ./python/)
+
+   The DOTSOCP-py package, designed for versatility and comprehensive tooling.
+   - Unified Solver: A single, consistent implementation capable of solving DOT (1D/2D), Weighted DOT, and Obstacle problems.
+   - Rich Tooling: Includes a Command Line Interface (CLI), Python API, and real-time visualization modules.
 
 Citation
-----------------
-Liang Chen, Youyicun Lin, and YuXuan Zhou, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization. Manuscript.
+--------
+If you use this code in your research, please cite:
 
+- Liang Chen, Youyicun Lin, and Yuxuan Zhou, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, arXiv:2505.05424, 2025.
 
 Contact
-----------------
-E-mail: chl@hnu.edu.cn
-Home page: https://grzy.hnu.edu.cn/site/index/chenliang3
--------------------------------------------------------
+-------
+- E-mail: chl@hnu.edu.cn
+- Home page: https://grzy.hnu.edu.cn/site/index/chenliang3
 
-Important note
-----------------
-- The software is still under development, so it will invariably be buggy. We would appreciate your feedback and bug reports.
-- This is research software. It is not currently intended or designed to be general-purpose software.
+License
+-------
+DOTSOCP is distributed under the GNU Affero General Public License, version 3. See ./LICENSE.
 
--------------------------------------------------------
-
-Copyright
-----------------
-The version of DOTSOCP is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE, version 3. A copy can be found in the `LICENSE` file.
-
--------------------------------------------------------
-
-Usage
-----------------
-DOTSOCP includes three core solvers:
-
-- The folder socp/dot1d is for 1-dimensional DOT
-- The folder socp/dot2d is for 2-dimensional DOT        
-- The folder socp/wdot2d is for 2-dimensional Weighted DOT
-
-These solvers are organized into independent folders to ensure each implementation is self-contained, facilitating focused usage and easy modification for specific problems.
-
-To get started, users can run the following simple demos:
-
-- demo_dot1d.m is for 1-dimensional DOT
-- demo_dot2d.m is for 2-dimensional DOT
-- demo_wdot2d.m is for 2-dimensional Weighted-DOT
-
--------------------------------------------------------
+---
 
 Thank you for your interest in our work on Dynamic Optimal Transport. We hope this repository serves as a valuable resource for furthering research in this area.

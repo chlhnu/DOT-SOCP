@@ -1,46 +1,65 @@
-## DOTSOCP -- a MATLAB software for dynamic optimal transport problem
+﻿# DOTSOCP
 
-### Liang Chen, Youyicun Lin, and  Yuxuan Zhou
+[![arXiv](https://img.shields.io/badge/arXiv-2505.05424-b31b1b.svg)](https://arxiv.org/abs/2505.05424)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
-This software is designed to solve the dynamic optimal transport (DOT) problem on a staggered grid discretization.
+<p>
+  <img src="./python/demos/outputs/dot_quartic_to_gaussian.gif" width="32%" />
+  <img src="./python/demos/outputs/dot_gaussian_to_dirac.gif" width="32%" />
+  <img src="./python/demos/outputs/dot_dotmark.gif" width="32%" />
+</p>
 
-### Citation
+<p>
+  <img src="./python/demos/outputs/wdot-circular.gif" width="32%" />
+  <img src="./python/demos/outputs/wdot-circle-pillar.gif" width="32%" />
+  <img src="./python/demos/outputs/wdot-maze.gif" width="32%" />
+</p>
 
-* **Liang Chen, Youyicun Lin, and YuXuan Zhou**, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, arXiv:2505.05424, 2025.
+**DOTSOCP** implements an efficient Second-Order Cone Programming (SOCP) approach for solving Dynamic Optimal Transport (DOT) on staggered grids.
 
-* **Important note:**
+This repository contains the official implementation of the paper:
 
-  * The software is still under development, so it will invariably be buggy. We would appreciate your feedback and bug reports.
+> **An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization**
+> *Liang Chen, Youyicun Lin, and Yuxuan Zhou*
+> arXiv:2505.05424, 2025.
 
-  * This is research software. It is not currently intended or designed to be general-purpose software.
+## Implementations
 
-### Contact
+We provide two independent implementations targeting different use cases:
 
-E-mail: chl@hnu.edu.cn
-Home page: https://grzy.hnu.edu.cn/site/index/chenliang3
+### 1. [MATLAB Version](./matlab/)
 
-### Copyright
+> **Location:** [`./matlab/`](./matlab/)
 
-The version of DOTSOCP is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE, version 3. A copy can be found in the `LICENSE` file.
+The original codebase used for the numerical experiments in the paper.
 
-### Usage
+* **Self-Contained Solvers**: Independent implementations for DOT 1D, DOT 2D, and Weighted DOT 2D.
+* **Efficient Numerics**: Delivers fast execution with a low memory footprint.
 
-DOTSOCP includes three core solvers:
+### 2. [Python Version](./python/)
 
-* The folder `socp/dot1d` is for 1-dimensional DOT
+> **Location:** [`./python/`](./python/)
 
-* The folder `socp/dot2d` is for 2-dimensional DOT
+The **DOTSOCP-py** package, designed for versatility and comprehensive tooling.
 
-* The folder `socp/wdot2d` is for 2-dimensional Weighted DOT
+* **Unified Solver**: A single, consistent implementation capable of solving DOT (1D/2D), Weighted DOT, and Obstacle problems.
+* **Rich Tooling**: Includes a Command Line Interface (CLI), Python API, and real-time visualization modules.
 
-These solvers are organized into independent folders to ensure each implementation is self-contained, facilitating focused usage and easy modification for specific problems.
+## Citation
 
-To get started, users can run the following simple demos:
+If you use this code in your research, please cite:
 
-* `demo_dot1d.m` is for 1-dimensional DOT
+* **Liang Chen, Youyicun Lin, and Yuxuan Zhou**, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, arXiv:2505.05424, 2025.
 
-* `demo_dot2d.m` is for 2-dimensional DOT
+## Contact
 
-* `demo_wdot2d.m` is for 2-dimensional Weighted DOT
+* E-mail: [chl@hnu.edu.cn](chl@hnu.edu.cn)
+* Home page: [https://grzy.hnu.edu.cn/site/index/chenliang3](https://grzy.hnu.edu.cn/site/index/chenliang3)
+
+## Copyright
+
+**DOTSOCP** is distributed under the GNU Affero General Public License, version 3. See `LICENSE`.
+
+---
 
 Thank you for your interest in our work on Dynamic Optimal Transport. We hope this repository serves as a valuable resource for furthering research in this area.

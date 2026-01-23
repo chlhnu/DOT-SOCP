@@ -1,0 +1,82 @@
+[MASTER]
+# Ignore common directories
+ignore=venv,env,.venv,.git,__pycache__
+ignore-patterns=__pycache__
+
+[MESSAGES CONTROL]
+# Disable everything first, then re-enable selectively
+disable=all
+
+# ---- Recommended checks ----
+# F / E: fatal and error level issues (syntax, import errors, etc.)
+# W: common warnings (unused items, suspicious patterns)
+# C: limited style checks (naming, bare except, etc.)
+enable=
+    F,
+    E,
+    W,
+    C,
+    # Frequently useful rules (disable later if they feel noisy)
+    unused-import,
+    unused-variable,
+    unused-argument,
+    redefined-builtin,
+    undefined-variable,
+    reimported,
+    bare-except,
+    broad-except,
+    dangerous-default-value,
+    super-init-not-called,
+    arguments-differ,
+    arguments-renamed,
+    duplicate-key,
+    consider-using-with,
+    consider-using-enumerate,
+    consider-using-f-string,
+    consider-using-dict-comprehension,
+    consider-using-set-comprehension,
+    inconsistent-return-statements,
+    redefined-outer-name,
+    consider-iterating-dictionary,
+    unnecessary-pass
+
+# ---- Checks explicitly disabled (too noisy or undesirable) ----
+# Add more rules here if they become annoying later
+disable=
+    missing-docstring,
+    too-many-arguments,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements,
+    too-many-instance-attributes,
+    too-many-return-statements,
+    too-many-nested-blocks,
+    invalid-name,          ; Naming is relaxed via good-names to avoid strict warnings
+    line-too-long          ; Line length enforced separately via max-line-length
+
+[FORMAT]
+# Keep line length at 120 to stay readable without constant warnings
+max-line-length=120
+
+[BASIC]
+# Allow short variable names so invalid-name does not trigger constantly
+good-names=
+    i,
+    j,
+    k,
+    x,
+    y,
+    z,
+    r,
+    g,
+    db,
+    id,
+    fn,
+    df,
+    ts,
+    fp
+
+# Uncomment to enforce stricter PEP 8-style naming patterns:
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+method-rgx=[a-z_][a-z0-9_]{2,30}$
+class-rgx=[A-Z_][a-zA-Z0-9]+$

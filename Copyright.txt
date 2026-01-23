@@ -1,5 +1,5 @@
 DOTSOCP: 
-A MATLAB software for Dynamic Optimal Transport
+A software for Dynamic Optimal Transport
 
 Copyright (C) 2024 by
 Liang Chen, Youyicun Lin, and Yuxuan Zhou
