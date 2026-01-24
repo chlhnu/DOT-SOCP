@@ -22,7 +22,7 @@
 
 Designed for flexibility and performance, core features include:
 
-* **Versatile Problem Solving**: Solves **DOT** (1D/2D) as well as **Weighted DOT** and **Obstacle** problems (2D).
+* **Versatile Problem Solving**: Solves **DOT** (1D/2D) as well as **Weighted DOT** (2D) problems.
 * **Fast & Robust Numerics**: Uses staggered-grid discretization and multilevel strategies, supporting stable and efficient numerical performance.
 * **Comprehensive Tooling**: Includes CLI, Python API, and visualization modules.
 

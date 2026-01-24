@@ -42,7 +42,7 @@ The original codebase used for the numerical experiments in the paper.
 
 The **DOTSOCP-py** package, designed for versatility and comprehensive tooling.
 
-* **Unified Solver**: A single, consistent implementation capable of solving DOT (1D/2D), Weighted DOT, and Obstacle problems.
+* **Unified Solver**: A single, consistent implementation capable of solving DOT (1D/2D), Weighted DOT (2D) problems.
 * **Rich Tooling**: Includes a Command Line Interface (CLI), Python API, and real-time visualization modules.
 
 ## Citation
