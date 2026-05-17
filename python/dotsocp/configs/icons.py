@@ -4,9 +4,9 @@
 LOG_ICON = {
     "stage": "🔥",
     "start": "🚀",
-    "done": "✅",
-    "warn": "⚠️",
+    "done":  "✅",
+    "warn":  "🚨",
     "error": "❌",
     "debug": "🔍",
-    "stop": "❄️",
+    "stop":  "🏁",
 }

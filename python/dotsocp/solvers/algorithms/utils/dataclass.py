@@ -25,8 +25,8 @@ class ScalingControl:
     sigma_scale: float
 
 
-class CppExtProtocol(Protocol):
-    """Wrapper for C++ extension module with bound methods."""
+class SocpBackendProtocol(Protocol):
+    """SOCP operator backend with compiled or Python implementations."""
     def oper_bfd(
         self,
         z, q,
@@ -61,7 +61,7 @@ class ProblemContext:
     E: float
     norm_c_ref: float
     norm_d_ref: float
-    cpp_ext: CppExtProtocol  # Placeholder for C++ extension module
+    backend: SocpBackendProtocol
     nt: int
     nx: int
     ny: Optional[int] = None  # invalid for 1D problems

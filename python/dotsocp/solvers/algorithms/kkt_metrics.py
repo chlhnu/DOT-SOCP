@@ -109,8 +109,8 @@ def kkt_metric_dot(
     qInd = context.qInd
     is_check_rho_b = os.getenv("DOTSOCP_CHECK_RHO_B", "1") == "1"
 
-    context.cpp_ext.oper_bfd_conj(state.q2, state.beta, context.scale_bf)
-    context.cpp_ext.proj_soc(state.proj_z_beta, state.z - dual_scale * state.beta)
+    context.backend.oper_bfd_conj(state.q2, state.beta, context.scale_bf)
+    context.backend.proj_soc(state.proj_z_beta, state.z - dual_scale * state.beta)
     weighted_alpha = state.alpha if context.weight is None else context.weight * state.alpha
 
     norm_q_val = norm_l2(state.q, context.h)

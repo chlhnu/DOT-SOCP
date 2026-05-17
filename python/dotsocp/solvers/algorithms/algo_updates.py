@@ -32,7 +32,7 @@ def inexact_palm_update(
 
     # Get context
     scale_d = context.E / state.d_scale
-    cpp_ext = context.cpp_ext
+    backend = context.backend
     weight = 1.0 if context.weight is None else context.weight
 
     # Get parameters
@@ -49,12 +49,12 @@ def inexact_palm_update(
         state.tmp_q = context.grad @ state.phi
 
     with timer(tag="Step z"):
-        # cpp_ext.proj_soc(state.z, state.z2 - state.beta)
-        cpp_ext.proj_soc(state.z, ne.evaluate("z2 - beta", local_dict={"z2": state.z2, "beta": state.beta}))
+        # backend.proj_soc(state.z, state.z2 - state.beta)
+        backend.proj_soc(state.z, ne.evaluate("z2 - beta", local_dict={"z2": state.z2, "beta": state.beta}))
 
     with timer(tag="Step q"):
-        # cpp_ext.oper_bfd_conj(state.q2, state.z + state.beta, context.scale_bf)
-        cpp_ext.oper_bfd_conj(state.q2, ne.evaluate("z + beta", local_dict={"z": state.z, "beta": state.beta}), context.scale_bf)
+        # backend.oper_bfd_conj(state.q2, state.z + state.beta, context.scale_bf)
+        backend.oper_bfd_conj(state.q2, ne.evaluate("z + beta", local_dict={"z": state.z, "beta": state.beta}), context.scale_bf)
         # state.q = (weight * (state.tmp_q + state.alpha) + state.q2) * context.diag_q_inv
         ne.evaluate(
             "(weight * (tmp_q + alpha) + q2) * diag_q_inv",
@@ -67,7 +67,7 @@ def inexact_palm_update(
             },
             out=state.q,
         )
-        cpp_ext.oper_bfd(state.z2, state.q, context.scale_bf, scale_d)
+        backend.oper_bfd(state.z2, state.q, context.scale_bf, scale_d)
 
     with timer(tag="Step multipliers"):
         # state.resi_alpha = state.tmp_q - weight * state.q
@@ -92,7 +92,7 @@ def palm_update(
 
     # Get context
     scale_d = context.E / state.d_scale
-    cpp_ext = context.cpp_ext
+    backend = context.backend
     weight = 1.0 if context.weight is None else context.weight
 
     # Get parameters
@@ -100,8 +100,8 @@ def palm_update(
 
     # Update steps
     with timer(tag="Step q - 1"):
-        # cpp_ext.oper_bfd_conj(state.q2, state.z + state.beta, context.scale_bf)
-        cpp_ext.oper_bfd_conj(state.q2, ne.evaluate("z + beta", local_dict={"z": state.z, "beta": state.beta}), context.scale_bf)
+        # backend.oper_bfd_conj(state.q2, state.z + state.beta, context.scale_bf)
+        backend.oper_bfd_conj(state.q2, ne.evaluate("z + beta", local_dict={"z": state.z, "beta": state.beta}), context.scale_bf)
         # state.q = (weight * (state.tmp_q + state.alpha) + state.q2) * context.diag_q_inv
         ne.evaluate(
             "(weight * (tmp_q + alpha) + q2) * diag_q_inv",
@@ -114,7 +114,7 @@ def palm_update(
             },
             out=state.q,
         )
-        cpp_ext.oper_bfd(state.z2, state.q, context.scale_bf, scale_d)
+        backend.oper_bfd(state.z2, state.q, context.scale_bf, scale_d)
 
     with timer(tag="Step phi"):
         # rhs = context.At @ (weight * state.q - state.alpha) + state.c_scaled
@@ -126,12 +126,12 @@ def palm_update(
         state.tmp_q = context.grad @ state.phi
 
     with timer(tag="Step z"):
-        # cpp_ext.proj_soc(state.z, state.z2 - state.beta)
-        cpp_ext.proj_soc(state.z, ne.evaluate("z2 - beta", local_dict={"z2": state.z2, "beta": state.beta}))
+        # backend.proj_soc(state.z, state.z2 - state.beta)
+        backend.proj_soc(state.z, ne.evaluate("z2 - beta", local_dict={"z2": state.z2, "beta": state.beta}))
 
     with timer(tag="Step q - 2"):
-        # cpp_ext.oper_bfd_conj(state.q2, state.z + state.beta, context.scale_bf)
-        cpp_ext.oper_bfd_conj(state.q2, ne.evaluate("z + beta", local_dict={"z": state.z, "beta": state.beta}), context.scale_bf)
+        # backend.oper_bfd_conj(state.q2, state.z + state.beta, context.scale_bf)
+        backend.oper_bfd_conj(state.q2, ne.evaluate("z + beta", local_dict={"z": state.z, "beta": state.beta}), context.scale_bf)
         # state.q = (weight * (state.tmp_q + state.alpha) + state.q2) * context.diag_q_inv
         ne.evaluate(
             "(weight * (tmp_q + alpha) + q2) * diag_q_inv",
@@ -144,7 +144,7 @@ def palm_update(
             },
             out=state.q,
         )
-        cpp_ext.oper_bfd(state.z2, state.q, context.scale_bf, scale_d)
+        backend.oper_bfd(state.z2, state.q, context.scale_bf, scale_d)
 
     with timer(tag="Step multipliers"):
         # state.resi_alpha = state.tmp_q - weight * state.q

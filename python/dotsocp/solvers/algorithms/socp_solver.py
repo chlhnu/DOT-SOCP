@@ -6,9 +6,9 @@ import numpy as np
 
 from .algo_updates import inexact_palm_update
 from .kkt_metrics import kkt_metric_dot, make_run_history_manager
-from .utils import cpp_ext_1d, cpp_ext_2d
 from .utils.metrics import norm_l2, fnorm_l2
 from .utils.admm_utils import PenaltyParamManager
+from .utils.backend import make_socp_backend
 from .utils.operators import (
     oper_q_1d, create_fft_kernel_2d,
     oper_q_2d, create_fft_kernel_3d,
@@ -18,7 +18,6 @@ from .utils.dataclass import (
     ScalingControl,
     ProblemContext,
     IterationState,
-    CppExtProtocol,
 )
 from ..utils.initialize import VariableState, ModelState
 
@@ -81,17 +80,7 @@ def _build_problem_context(var: VariableState, model: ModelState) -> ProblemCont
         diag_q = oper_q_2d(ny, nx, nt, D, E, weight=weight)
         diag_q_inv = (1.0 / diag_q).reshape(-1, 1, order='F')
 
-        class _Wrapper_2d(CppExtProtocol):
-            def oper_bfd(self, z, q, scale_bf: float = 1.0, scale_d: float = 1.0) -> None:
-                cpp_ext_2d.oper_bfd(z, q, nt, nx, ny, scale_bf, scale_d)
-
-            def oper_bfd_conj(self, q, z, scale_bf: float = 1.0) -> None:
-                cpp_ext_2d.oper_bfd_conj(q, z, nt, nx, ny, scale_bf)
-
-            def proj_soc(self, z, zz) -> None:
-                cpp_ext_2d.proj_soc(z, zz)
-
-        cpp_ext = _Wrapper_2d()
+        backend = make_socp_backend(dim=2, nt=nt, nx=nx, ny=ny)
 
     elif dim == 1:
         nt, nx = model.nt, model.nx
@@ -101,24 +90,14 @@ def _build_problem_context(var: VariableState, model: ModelState) -> ProblemCont
         diag_q = oper_q_1d(nx, nt, D, E, weight=weight)
         diag_q_inv = (1.0 / diag_q).reshape(-1, 1, order='F')
 
-        class _Wrapper_1d(CppExtProtocol):
-            def oper_bfd(self, z, q, scale_bf: float = 1.0, scale_d: float = 1.0) -> None:
-                cpp_ext_1d.oper_bfd(z, q, nt, nx, scale_bf, scale_d)
-
-            def oper_bfd_conj(self, q, z, scale_bf: float = 1.0) -> None:
-                cpp_ext_1d.oper_bfd_conj(q, z, nt, nx, scale_bf)
-
-            def proj_soc(self, z, zz) -> None:
-                cpp_ext_1d.proj_soc(z, zz)
-
-        cpp_ext = _Wrapper_1d()
+        backend = make_socp_backend(dim=1, nt=nt, nx=nx)
     
     norm_c_ref = norm_l2(model.c, h) * np.sqrt(nt)
     norm_d_ref = 1.0
 
     return ProblemContext(
         dim=model.dim,
-        cpp_ext=cpp_ext,
+        backend=backend,
         nx=nx,
         ny=ny,
         nt=nt,
@@ -167,9 +146,9 @@ def _initialize_iteration_state(var: VariableState, sigma, context: ProblemConte
 
     # Precompute
     tmp_q = context.grad @ phi
-    context.cpp_ext.oper_bfd(z, tmp_q, context.scale_bf, context.E / d_scale)
-    context.cpp_ext.oper_bfd(z2, q, context.scale_bf, context.E / d_scale)
-    context.cpp_ext.oper_bfd_conj(alpha, -beta, context.scale_bf)
+    context.backend.oper_bfd(z, tmp_q, context.scale_bf, context.E / d_scale)
+    context.backend.oper_bfd(z2, q, context.scale_bf, context.E / d_scale)
+    context.backend.oper_bfd_conj(alpha, -beta, context.scale_bf)
 
     if context.weight is not None:
         alpha /= context.weight
@@ -245,7 +224,7 @@ def _apply_rescale(
     state.d_scale *= d_scale2
     state.c_scale *= c_scale2
     scale_d = context.E / state.d_scale
-    context.cpp_ext.oper_bfd(state.z2, state.q, context.scale_bf, scale_d)
+    context.backend.oper_bfd(state.z2, state.q, context.scale_bf, scale_d)
 
     logging.debug(f"   [Rescale #{scaling_ctrl.level - 1}] Iter: {iter_idx}, Sigma: {sigma:.2e}, Ratio: {scale_ratio:.2f}")
     scaling_ctrl.level += 1
