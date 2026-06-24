@@ -1,6 +1,6 @@
 ﻿# DOTSOCP
 
-[![arXiv](https://img.shields.io/badge/arXiv-2505.05424-b31b1b.svg)](https://arxiv.org/abs/2505.05424)
+[![DOI](https://img.shields.io/badge/DOI-10.1007%2Fs12532--026--00329--y-184161.svg)](https://doi.org/10.1007/s12532-026-00329-y)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
 <p>
@@ -17,11 +17,12 @@
 
 **DOTSOCP** implements an efficient Second-Order Cone Programming (SOCP) approach for solving Dynamic Optimal Transport (DOT) on staggered grids.
 
-This repository contains the official implementation of the paper:
+This repository contains the official implementation of the paper ([journal](https://doi.org/10.1007/s12532-026-00329-y), [preprint](https://arxiv.org/abs/2505.05424)):
 
-> **An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization**
-> *Liang Chen, Youyicun Lin, and Yuxuan Zhou*
-> arXiv:2505.05424, 2025.
+> Liang Chen, Youyicun Lin, and Yuxuan Zhou,
+> **An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization**,
+> *Mathematical Programming Computation*, 2026.
+> [DOI: 10.1007/s12532-026-00329-y](https://doi.org/10.1007/s12532-026-00329-y).
 
 ## Implementations
 
@@ -49,11 +50,11 @@ The **DOTSOCP-py** package, designed for versatility and comprehensive tooling.
 
 If you use this code in your research, please cite:
 
-* **Liang Chen, Youyicun Lin, and Yuxuan Zhou**, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, arXiv:2505.05424, 2025.
+* Liang Chen, Youyicun Lin, and Yuxuan Zhou, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, *Mathematical Programming Computation*, 2026.
 
 ## Contact
 
-* E-mail: [chl@hnu.edu.cn](chl@hnu.edu.cn)
+* E-mail: [chl@hnu.edu.cn](mailto:chl@hnu.edu.cn)
 * Home page: [https://grzy.hnu.edu.cn/site/index/chenliang3](https://grzy.hnu.edu.cn/site/index/chenliang3)
 
 ## Copyright

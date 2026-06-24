@@ -12,27 +12,25 @@ Designed for clarity and reproducibility, core features include:
 - Fast, Robust, and Memory-Efficient Numerics: Uses staggered-grid discretization and multilevel strategies for stable and efficient performance, with a low memory footprint.
 - Ready-to-Run Experiments: Includes demo scripts, example generators, and lightweight visualization utilities for quick exploration and debugging.
 
-Note
---------------
-- This is research software under active development. Interfaces may change, and feedback is welcome
+Note: This is research software under active development. Interfaces may change, and feedback is welcome.
 
 Citation
 --------
 If you use this code in your research, please cite:
 
-- Liang Chen, Youyicun Lin, and Yuxuan Zhou, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, arXiv:2505.05424, 2025.
+- Liang Chen, Youyicun Lin, and Yuxuan Zhou, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, Mathematical Programming Computation, 2026.
 
 Contact
--------
+--------
 - E-mail: chl@hnu.edu.cn
 - Home page: https://grzy.hnu.edu.cn/site/index/chenliang3
 
 License
--------
+--------
 DOTSOCP (MATLAB) is distributed under the GNU Affero General Public License, version 3. See ../LICENSE.
 
 Quickstart
-----------
+--------
 
 DOTSOCP includes three core solvers:
 

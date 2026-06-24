@@ -5,9 +5,10 @@ DOTSOCP implements an efficient Second-Order Cone Programming (SOCP) approach fo
 
 This repository contains the official implementation of the paper:
 
-  An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization
-  Liang Chen, Youyicun Lin, and Yuxuan Zhou
-  arXiv:2505.05424, 2025.
+  Liang Chen, Youyicun Lin, and Yuxuan Zhou,
+  An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization,
+  Mathematical Programming Computation, 2026.
+  DOI: https://doi.org/10.1007/s12532-026-00329-y.
 
 Implementations
 ---------------
@@ -29,7 +30,7 @@ Citation
 --------
 If you use this code in your research, please cite:
 
-- Liang Chen, Youyicun Lin, and Yuxuan Zhou, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, arXiv:2505.05424, 2025.
+- Liang Chen, Youyicun Lin, and Yuxuan Zhou, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, Mathematical Programming Computation, 2026.
 
 Contact
 -------

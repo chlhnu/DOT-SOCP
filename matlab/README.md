@@ -2,7 +2,7 @@
 
 > *Note: This folder contains the **MATLAB implementation**. For the Python version, please see the [../python](../python/) directory.*
 
-[![arXiv](https://img.shields.io/badge/arXiv-2505.05424-b31b1b.svg)](https://arxiv.org/abs/2505.05424)
+[![DOI](https://img.shields.io/badge/DOI-10.1007%2Fs12532--026--00329--y-184161.svg)](https://doi.org/10.1007/s12532-026-00329-y)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](../LICENSE)
 [![MATLAB 2023b+](https://img.shields.io/badge/MATLAB-2023b+-e16737.svg)](https://www.mathworks.com/products/matlab.html)
 
@@ -21,16 +21,16 @@ Designed for clarity and reproducibility, core features include:
 
 If you use this code in your research, please cite:
 
-* **Liang Chen, Youyicun Lin, and Yuxuan Zhou**, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, arXiv:2505.05424, 2025.
+* Liang Chen, Youyicun Lin, and Yuxuan Zhou, An efficient second-order cone programming approach for dynamic optimal transport on staggered grid discretization, *Mathematical Programming Computation*, 2026.
 
 ## Contact
 
-* E-mail: [chl@hnu.edu.cn](chl@hnu.edu.cn)
+* E-mail: [chl@hnu.edu.cn](mailto:chl@hnu.edu.cn)
 * Home page: [https://grzy.hnu.edu.cn/site/index/chenliang3](https://grzy.hnu.edu.cn/site/index/chenliang3)
 
 ## Copyright
 
-DOTSOCP (MATLAB) is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE, version 3. A copy can be found in the [LICENSE](../LICENSE).
+DOTSOCP (MATLAB) is distributed under the GNU Affero General Public License, version 3. A copy can be found in the [LICENSE](../LICENSE).
 
 ## Quickstart
 
